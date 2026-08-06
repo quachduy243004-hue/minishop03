@@ -6,12 +6,12 @@
 
     <div class="list-group mt-4">
 
-        <a href="../dashboard.php"
+        <a href="/MiniShop_quachvanduy/views/admin/dashboard.php"
             class="list-group-item list-group-item-action">
             Dashboard
         </a>
 
-        <a href="../categories/index.php"
+        <a href="/MiniShop_quachvanduy/views/admin/categories/index.php"
             class="list-group-item list-group-item-action">
             Danh mục
         </a>

@@ -44,7 +44,7 @@ class CategoryDAO extends BaseDAO
             $result = $stmt->get_result();
             if ($row = $result->fetch_assoc()) {
                 $category = new Category(
-                    $row["name"],
+                    $row["catename"],
                     $row["slug"],
                     $row["image"],
                     $row["description"],
