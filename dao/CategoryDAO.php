@@ -119,4 +119,41 @@ WHERE id=?";
             throw $e;
         }
     }
+public function search(string $keyword): array
+{
+    $list = [];
+
+    $sql = "SELECT * FROM categories
+            WHERE catename LIKE ?
+            ORDER BY catename";
+
+    $stmt = $this->prepare($sql);
+
+    $key = "%".$keyword."%";
+
+    $stmt->bind_param("s", $key);
+
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+    while ($row = $result->fetch_assoc()) {
+
+        $category = new Category(
+            $row["catename"],
+            $row["slug"],
+            $row["image"],
+            $row["description"],
+            $row["status"]
+        );
+
+        $category->id = $row["id"];
+        $category->createdAt = $row["created_at"];
+        $category->updatedAt = $row["updated_at"];
+
+        $list[] = $category;
+    }
+
+    return $list;
+}
 }

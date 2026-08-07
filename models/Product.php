@@ -15,6 +15,8 @@ class Product
     public int $status;
     public string $createdAt;
     public string $updatedAt;
+    public string $categoryName;
+    public string $brandName;
 
     public function __construct(
         int $categoryId = 0,

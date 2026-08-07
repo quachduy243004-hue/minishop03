@@ -16,16 +16,22 @@ if (isset($_POST["btnDelete"])) {
 
         header("Location: index.php");
         exit;
-
     } else {
 
         $message = "Xóa danh mục thất bại!";
-
     }
 }
 
-// Lấy danh sách
-$list = $categoryDAO->getAll();
+// Tìm kiếm
+$keyword = trim($_GET["keyword"] ?? "");
+
+if ($keyword == "") {
+
+    $list = $categoryDAO->getAll();
+} else {
+
+    $list = $categoryDAO->search($keyword);
+}
 
 ob_start();
 ?>
@@ -34,8 +40,27 @@ ob_start();
 
     <div class="d-flex justify-content-between align-items-center mb-3">
 
-        <h3>Quản lý danh mục</h3>
-        
+        <h3 class="mb-0">Quản lý danh mục</h3>
+
+        <form method="GET" class="d-flex">
+
+            <input
+                type="search"
+                name="keyword"
+                class="form-control me-2"
+                style="width:250px"
+                placeholder="Nhập tên danh mục"
+                value="<?= htmlspecialchars($_GET["keyword"] ?? "") ?>">
+
+            <button type="submit" class="btn btn-success me-2">
+                <i class="fa fa-search"></i> Tìm
+            </button>
+
+            <a href="index.php" class="btn btn-secondary">
+                Làm mới
+            </a>
+
+        </form>
 
         <a href="create.php" class="btn btn-primary">
             <i class="fa fa-plus"></i> Thêm mới
@@ -89,14 +114,17 @@ ob_start();
 
                                     <?php if (!empty($item->image)): ?>
 
-                                        <img src="../../../uploads/category/<?= htmlspecialchars($item->image) ?>"
+                                        <img
+                                            src="../../../uploads/category/<?= htmlspecialchars($item->image) ?>"
                                             width="70"
                                             height="70"
                                             style="object-fit:cover;border-radius:6px;">
 
                                     <?php else: ?>
 
-                                        <span class="text-muted">Không có ảnh</span>
+                                        <span class="text-muted">
+                                            Không có ảnh
+                                        </span>
 
                                     <?php endif; ?>
 
@@ -129,7 +157,7 @@ ob_start();
                                 </td>
 
                                 <td class="text-center">
-                                    <?= $item->createdAt ?? "" ?>
+                                    <?= $item->createdAt ?>
                                 </td>
 
                                 <td class="text-center">
@@ -144,11 +172,12 @@ ob_start();
                                     <a href="edit.php?id=<?= $item->id ?>"
                                         class="btn btn-warning btn-sm">
 
-                                        <i class="fa fa-edit"></i>
+                                        <i class="fa fa-edit"></i> Sửa
 
                                     </a>
 
-                                    <form method="POST"
+                                    <form
+                                        method="POST"
                                         style="display:inline"
                                         onsubmit="return confirm('Bạn có chắc muốn xóa?');">
 
@@ -162,7 +191,7 @@ ob_start();
                                             name="btnDelete"
                                             class="btn btn-danger btn-sm">
 
-                                            <i class="fa fa-trash"></i>
+                                            <i class="fa fa-trash"></i> xóa
 
                                         </button>
 
@@ -178,9 +207,9 @@ ob_start();
 
                         <tr>
 
-                            <td colspan="7" class="text-center text-muted">
+                            <td colspan="7" class="text-center text-danger">
 
-                                Chưa có dữ liệu danh mục.
+                                Không tìm thấy dữ liệu.
 
                             </td>
 

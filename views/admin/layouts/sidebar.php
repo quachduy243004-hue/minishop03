@@ -21,7 +21,7 @@
             Thương hiệu
         </a>
 
-        <a href="../products/index.php"
+        <a href="/MiniShop_quachvanduy/views/admin/product/index.php"
             class="list-group-item list-group-item-action">
             Sản phẩm
         </a>

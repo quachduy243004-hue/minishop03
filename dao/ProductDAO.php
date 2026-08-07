@@ -9,47 +9,57 @@ class ProductDAO extends BaseDAO
         parent::__construct();
     }
 
-    // Lấy tất cả sản phẩm
-    public function getAll(): array
-    {
-        $list = [];
+public function getAll(): array
+{
+    $list = [];
 
-        try {
+    try {
 
-            $sql = "SELECT * FROM products ORDER BY proname";
+        $sql = "SELECT
+                    p.*,
+                    c.catename AS categoryName,
+                    b.brandname AS brandName
+                FROM products p
+                LEFT JOIN categories c
+                    ON p.category_id = c.id
+                LEFT JOIN brands b
+                    ON p.brand_id = b.id
+                ORDER BY p.proname";
 
-            $result = $this->executeQuery($sql);
+        $result = $this->executeQuery($sql);
 
-            while ($row = $result->fetch_assoc()) {
+        while ($row = $result->fetch_assoc()) {
 
-                $product = new Product(
-                    $row["category_id"],
-                    $row["brand_id"],
-                    $row["proname"],
-                    $row["slug"],
-                    $row["price"],
-                    $row["discount_price"],
-                    $row["quantity"],
-                    $row["image"],
-                    $row["description"],
-                    $row["status"]
-                );
+            $product = new Product(
+                $row["category_id"],
+                $row["brand_id"],
+                $row["proname"],
+                $row["slug"],
+                $row["price"],
+                $row["discount_price"],
+                $row["quantity"],
+                $row["image"],
+                $row["description"],
+                $row["status"]
+            );
 
-                $product->id = $row["id"];
-                $product->createdAt = $row["created_at"];
-                $product->updatedAt = $row["updated_at"];
+            $product->id = $row["id"];
+            $product->createdAt = $row["created_at"];
+            $product->updatedAt = $row["updated_at"];
 
-                $list[] = $product;
-            }
+            // Thêm 2 thuộc tính này
+            $product->categoryName = $row["categoryName"];
+            $product->brandName = $row["brandName"];
 
-        } catch (Exception $e) {
-            throw $e;
+            $list[] = $product;
         }
 
-        return $list;
+    } catch (Exception $e) {
+        throw $e;
     }
 
-    // Tìm sản phẩm theo ID
+    return $list;
+}    // Tìm sản phẩm theo ID
     public function findById(int $id): ?Product
     {
         try {
