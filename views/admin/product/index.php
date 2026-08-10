@@ -21,7 +21,6 @@ if (isset($_POST["btnDelete"])) {
         $message = "Xóa danh mục thất bại!";
     }
 }
-$list = $productDAO->getAll();
 
 ob_start();
 ?>

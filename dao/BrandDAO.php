@@ -71,7 +71,6 @@ class BrandDAO extends BaseDAO
 
                 return $brand;
             }
-
         } catch (Exception $e) {
             throw $e;
         }
@@ -100,7 +99,6 @@ class BrandDAO extends BaseDAO
             );
 
             return $stmt->execute();
-
         } catch (Exception $e) {
             throw $e;
         }
@@ -133,7 +131,6 @@ class BrandDAO extends BaseDAO
             );
 
             return $stmt->execute();
-
         } catch (Exception $e) {
             throw $e;
         }
@@ -151,9 +148,69 @@ class BrandDAO extends BaseDAO
             $stmt->bind_param("i", $id);
 
             return $stmt->execute();
-
         } catch (Exception $e) {
             throw $e;
         }
     }
+    public function search(string $keyword): array
+    {
+        $list = [];
+
+        $sql = "SELECT *
+            FROM brands
+            WHERE brandname LIKE ?
+            ORDER BY id DESC";
+
+        $stmt = $this->prepare($sql);
+
+        $keyword = "%" . $keyword . "%";
+
+        $stmt->bind_param("s", $keyword);
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        while ($row = $result->fetch_assoc()) {
+
+            $brand = new Brand();
+
+            $brand->id = $row["id"];
+            $brand->brandname = $row["brandname"];
+            $brand->slug = $row["slug"];
+
+            // Nếu bảng brands có cột image
+            $brand->image = $row["image"];
+
+            $brand->description = $row["description"];
+            $brand->status = $row["status"];
+
+            $brand->createdAt = $row["created_at"];
+            $brand->updatedAt = $row["updated_at"];
+
+            $list[] = $brand;
+        }
+
+        return $list;
+    }
+    public function existsBySlugExceptId(string $slug, int $id): bool
+{
+    $sql = "
+        SELECT id
+        FROM brands
+        WHERE slug = ?
+        AND id != ?
+        LIMIT 1
+    ";
+
+    $stmt = $this->prepare($sql);
+
+    $stmt->bind_param("si", $slug, $id);
+
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+    return $result->num_rows > 0;
+}
 }

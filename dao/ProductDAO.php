@@ -206,4 +206,101 @@ public function getAll(): array
             throw $e;
         }
     }
+
+// Lấy danh sách ảnh Gallery
+public function getImagesByProductId(int $productId): array
+{
+    $list = [];
+
+    $sql = "
+        SELECT *
+        FROM product_images
+        WHERE product_id = ?
+        ORDER BY id DESC
+    ";
+
+    $stmt = $this->prepare($sql);
+
+    $stmt->bind_param("i", $productId);
+
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+    while ($row = $result->fetch_assoc()) {
+
+        $list[] = $row;
+    }
+
+    return $list;
+}
+
+
+// Xóa ảnh Gallery
+public function deleteImage(int $id): ?string
+{
+    // Lấy tên file
+    $sql = "
+        SELECT image
+        FROM product_images
+        WHERE id = ?
+    ";
+
+    $stmt = $this->prepare($sql);
+
+    $stmt->bind_param("i", $id);
+
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+    if (!$row = $result->fetch_assoc()) {
+
+        return null;
+    }
+
+
+    $image = $row["image"];
+
+
+    // Xóa database
+    $sql = "
+        DELETE FROM product_images
+        WHERE id = ?
+    ";
+
+    $stmt = $this->prepare($sql);
+
+    $stmt->bind_param("i", $id);
+
+    if ($stmt->execute()) {
+
+        return $image;
+    }
+
+
+    return null;
+}
+public function getImageById(int $id): ?string
+{
+    $sql = "
+        SELECT image
+        FROM product_images
+        WHERE id = ?
+    ";
+
+    $stmt = $this->prepare($sql);
+
+    $stmt->bind_param("i", $id);
+
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+    if ($row = $result->fetch_assoc()) {
+        return $row["image"];
+    }
+
+    return null;
+}
 }
