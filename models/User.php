@@ -16,7 +16,7 @@ class User
 
     public function __construct(
         string $fullname = "",
-        string $username = "",
+        string $username = "",  
         string $password = "",
         string $email = "",
         string $phone = "",

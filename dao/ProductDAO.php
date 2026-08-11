@@ -9,13 +9,13 @@ class ProductDAO extends BaseDAO
         parent::__construct();
     }
 
-public function getAll(): array
-{
-    $list = [];
+    public function getAll(): array
+    {
+        $list = [];
 
-    try {
+        try {
 
-        $sql = "SELECT
+            $sql = "SELECT
                     p.*,
                     c.catename AS categoryName,
                     b.brandname AS brandName
@@ -26,40 +26,39 @@ public function getAll(): array
                     ON p.brand_id = b.id
                 ORDER BY p.proname";
 
-        $result = $this->executeQuery($sql);
+            $result = $this->executeQuery($sql);
 
-        while ($row = $result->fetch_assoc()) {
+            while ($row = $result->fetch_assoc()) {
 
-            $product = new Product(
-                $row["category_id"],
-                $row["brand_id"],
-                $row["proname"],
-                $row["slug"],
-                $row["price"],
-                $row["discount_price"],
-                $row["quantity"],
-                $row["image"],
-                $row["description"],
-                $row["status"]
-            );
+                $product = new Product(
+                    $row["category_id"],
+                    $row["brand_id"],
+                    $row["proname"],
+                    $row["slug"],
+                    $row["price"],
+                    $row["discount_price"],
+                    $row["quantity"],
+                    $row["image"],
+                    $row["description"],
+                    $row["status"]
+                );
 
-            $product->id = $row["id"];
-            $product->createdAt = $row["created_at"];
-            $product->updatedAt = $row["updated_at"];
+                $product->id = $row["id"];
+                $product->createdAt = $row["created_at"];
+                $product->updatedAt = $row["updated_at"];
 
-            // Thêm 2 thuộc tính này
-            $product->categoryName = $row["categoryName"];
-            $product->brandName = $row["brandName"];
+                // Thêm 2 thuộc tính này
+                $product->categoryName = $row["categoryName"];
+                $product->brandName = $row["brandName"];
 
-            $list[] = $product;
+                $list[] = $product;
+            }
+        } catch (Exception $e) {
+            throw $e;
         }
 
-    } catch (Exception $e) {
-        throw $e;
-    }
-
-    return $list;
-}    // Tìm sản phẩm theo ID
+        return $list;
+    }    // Tìm sản phẩm theo ID
     public function findById(int $id): ?Product
     {
         try {
@@ -95,7 +94,6 @@ public function getAll(): array
 
                 return $product;
             }
-
         } catch (Exception $e) {
             throw $e;
         }
@@ -140,7 +138,6 @@ public function getAll(): array
             );
 
             return $stmt->execute();
-
         } catch (Exception $e) {
             throw $e;
         }
@@ -183,7 +180,6 @@ public function getAll(): array
             );
 
             return $stmt->execute();
-
         } catch (Exception $e) {
             throw $e;
         }
@@ -201,106 +197,295 @@ public function getAll(): array
             $stmt->bind_param("i", $id);
 
             return $stmt->execute();
-
         } catch (Exception $e) {
             throw $e;
         }
     }
 
-// Lấy danh sách ảnh Gallery
-public function getImagesByProductId(int $productId): array
-{
-    $list = [];
+    // Lấy danh sách ảnh Gallery
+    public function getImagesByProductId(int $productId): array
+    {
+        $list = [];
 
-    $sql = "
+        $sql = "
         SELECT *
         FROM product_images
         WHERE product_id = ?
         ORDER BY id DESC
     ";
 
-    $stmt = $this->prepare($sql);
+        $stmt = $this->prepare($sql);
 
-    $stmt->bind_param("i", $productId);
+        $stmt->bind_param("i", $productId);
 
-    $stmt->execute();
+        $stmt->execute();
 
-    $result = $stmt->get_result();
+        $result = $stmt->get_result();
 
-    while ($row = $result->fetch_assoc()) {
+        while ($row = $result->fetch_assoc()) {
 
-        $list[] = $row;
+            $list[] = $row;
+        }
+
+        return $list;
     }
 
-    return $list;
-}
 
-
-// Xóa ảnh Gallery
-public function deleteImage(int $id): ?string
-{
-    // Lấy tên file
-    $sql = "
+    // Xóa ảnh Gallery
+    public function deleteImage(int $id): ?string
+    {
+        // Lấy tên file
+        $sql = "
         SELECT image
         FROM product_images
         WHERE id = ?
     ";
 
-    $stmt = $this->prepare($sql);
+        $stmt = $this->prepare($sql);
 
-    $stmt->bind_param("i", $id);
+        $stmt->bind_param("i", $id);
 
-    $stmt->execute();
+        $stmt->execute();
 
-    $result = $stmt->get_result();
+        $result = $stmt->get_result();
 
-    if (!$row = $result->fetch_assoc()) {
+        if (!$row = $result->fetch_assoc()) {
 
-        return null;
-    }
-
-
-    $image = $row["image"];
+            return null;
+        }
 
 
-    // Xóa database
-    $sql = "
+        $image = $row["image"];
+
+
+        // Xóa database
+        $sql = "
         DELETE FROM product_images
         WHERE id = ?
     ";
 
-    $stmt = $this->prepare($sql);
+        $stmt = $this->prepare($sql);
 
-    $stmt->bind_param("i", $id);
+        $stmt->bind_param("i", $id);
 
-    if ($stmt->execute()) {
+        if ($stmt->execute()) {
 
-        return $image;
+            return $image;
+        }
+
+
+        return null;
     }
-
-
-    return null;
-}
-public function getImageById(int $id): ?string
-{
-    $sql = "
+    public function getImageById(int $id): ?string
+    {
+        $sql = "
         SELECT image
         FROM product_images
         WHERE id = ?
     ";
 
-    $stmt = $this->prepare($sql);
+        $stmt = $this->prepare($sql);
 
-    $stmt->bind_param("i", $id);
+        $stmt->bind_param("i", $id);
 
-    $stmt->execute();
+        $stmt->execute();
 
-    $result = $stmt->get_result();
+        $result = $stmt->get_result();
 
-    if ($row = $result->fetch_assoc()) {
-        return $row["image"];
+        if ($row = $result->fetch_assoc()) {
+            return $row["image"];
+        }
+
+        return null;
     }
+    public function getPage(
+        int $limit,
+        int $offset,
+        string $keyword = "",
+        string $sort = "name_asc"
+    ) {
+        // ==============================
+        // XÁC ĐỊNH CÁCH SẮP XẾP
+        // ==============================
 
-    return null;
-}
+        switch ($sort) {
+
+            case "name_desc":
+                $orderBy = "p.proname DESC";
+                break;
+
+            case "price_asc":
+                $orderBy = "p.price ASC";
+                break;
+
+            case "price_desc":
+                $orderBy = "p.price DESC";
+                break;
+
+            case "name_asc":
+            default:
+                $orderBy = "p.proname ASC";
+                break;
+        }
+
+
+        // ==============================
+        // SQL
+        // ==============================
+
+        $sql = "SELECT
+                p.*,
+                c.catename AS categoryName,
+                b.brandname AS brandName
+            FROM products p
+
+            INNER JOIN categories c
+                ON p.category_id = c.id
+
+            INNER JOIN brands b
+                ON p.brand_id = b.id
+
+            WHERE p.proname LIKE ?
+
+            ORDER BY $orderBy
+
+            LIMIT ? OFFSET ?";
+
+
+        $stmt = $this->conn->prepare($sql);
+
+
+        // ==============================
+        // KEYWORD
+        // ==============================
+
+        $search = "%" . $keyword . "%";
+
+
+        $stmt->bind_param(
+            "sii",
+            $search,
+            $limit,
+            $offset
+        );
+
+
+        $stmt->execute();
+
+
+        $result = $stmt->get_result();
+
+
+        $products = [];
+
+
+        while ($row = $result->fetch_assoc()) {
+
+            $product = new Product(
+
+                $row["category_id"],
+                $row["brand_id"],
+                $row["proname"],
+                $row["slug"],
+                $row["price"],
+                $row["discount_price"],
+                $row["quantity"],
+                $row["image"],
+                $row["description"],
+                $row["status"]
+
+            );
+
+
+            $product->id = $row["id"];
+
+            $product->categoryName =
+                $row["categoryName"] ?? "";
+
+            $product->brandName =
+                $row["brandName"] ?? "";
+
+            $product->createdAt =
+                $row["created_at"] ?? "";
+
+            $product->updatedAt =
+                $row["updated_at"] ?? "";
+
+
+            $products[] = $product;
+        }
+
+
+        return $products;
+    }
+    public function getById(int $id)
+    {
+        $sql = "SELECT
+                p.*,
+                c.catename AS categoryName,
+                b.brandname AS brandName
+            FROM products p
+            LEFT JOIN categories c
+                ON p.category_id = c.id
+            LEFT JOIN brands b
+                ON p.brand_id = b.id
+            WHERE p.id = ?";
+
+        $stmt = $this->conn->prepare($sql);
+
+        $stmt->bind_param("i", $id);
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        $row = $result->fetch_assoc();
+
+        if (!$row) {
+            return null;
+        }
+
+        $product = new Product(
+            $row["category_id"],
+            $row["brand_id"],
+            $row["proname"],
+            $row["slug"],
+            $row["price"],
+            $row["discount_price"],
+            $row["quantity"],
+            $row["image"],
+            $row["description"],
+            $row["status"]
+        );
+
+        $product->id = $row["id"];
+
+        $product->categoryName = $row["categoryName"] ?? "";
+        $product->brandName = $row["brandName"] ?? "";
+
+        $product->createdAt = $row["created_at"] ?? "";
+        $product->updatedAt = $row["updated_at"] ?? "";
+
+        return $product;
+    }
+    public function countByKeyword(string $keyword = "")
+    {
+        $sql = "SELECT COUNT(*) AS total
+            FROM products
+            WHERE proname LIKE ?";
+
+        $stmt = $this->conn->prepare($sql);
+
+        $search = "%" . $keyword . "%";
+
+        $stmt->bind_param("s", $search);
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        $row = $result->fetch_assoc();
+
+        return (int)$row["total"];
+    }
 }

@@ -6,6 +6,16 @@ class BaseDAO extends Database
     {
         parent::__construct();
     }
+    public function count(string $table)
+    {
+    $sql = "SELECT COUNT(*) AS total FROM $table";
+
+    $result = $this->conn->query($sql);
+
+    $row = $result->fetch_assoc();
+
+    return (int)$row["total"];
+    }
     // Thực thi câu lệnh SELECT
     protected function executeQuery(string $sql): mysqli_result|false
     {

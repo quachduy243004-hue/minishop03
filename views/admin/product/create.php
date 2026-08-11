@@ -2,7 +2,6 @@
 require_once "../../../dao/ProductDAO.php";
 require_once "../../../dao/CategoryDAO.php";
 require_once "../../../dao/BrandDAO.php";
-
 require_once "../../../models/Product.php";
 
 $pageTitle = "Thêm sản phẩm";
@@ -38,7 +37,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $description = trim($_POST["description"] ?? "");
     $status = $_POST["status"] ?? 1;
 
-    // Upload
+    // =========================
+    // UPLOAD ẢNH
+    // =========================
+
     $fileName = $_FILES["image"]["name"] ?? "";
     $tmpName = $_FILES["image"]["tmp_name"] ?? "";
     $fileSize = $_FILES["image"]["size"] ?? 0;
@@ -46,66 +48,82 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $image = "";
 
-    // Validation
-    if ($categoryId == "")
+    // =========================
+    // VALIDATION
+    // =========================
+
+    if ($categoryId == "") {
         $errors[] = "Chưa chọn danh mục.";
+    }
 
-    if ($brandId == "")
+    if ($brandId == "") {
         $errors[] = "Chưa chọn thương hiệu.";
+    }
 
-    if ($proname == "")
+    if ($proname == "") {
         $errors[] = "Tên sản phẩm không được để trống.";
+    }
 
-    if ($slug == "")
+    if ($slug == "") {
         $errors[] = "Slug không được để trống.";
+    }
 
-    if ($price <= 0)
+    if ($price <= 0) {
         $errors[] = "Giá phải lớn hơn 0.";
+    }
 
-    if ($quantity < 0)
+    if ($quantity < 0) {
         $errors[] = "Số lượng không hợp lệ.";
+    }
 
+    // Kiểm tra ảnh
     if ($fileName != "") {
 
         if ($error != UPLOAD_ERR_OK) {
-
             $errors[] = "Upload ảnh thất bại.";
-
         }
 
         $allow = ["jpg", "jpeg", "png", "gif", "webp"];
 
-        $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $ext = strtolower(
+            pathinfo($fileName, PATHINFO_EXTENSION)
+        );
 
         if (!in_array($ext, $allow)) {
-
             $errors[] = "Chỉ cho phép JPG, JPEG, PNG, GIF, WEBP.";
-
         }
 
         if ($fileSize > 200 * 1024) {
-
             $errors[] = "Ảnh tối đa 200KB.";
-
         }
     }
+
+    // =========================
+    // INSERT
+    // =========================
 
     if (empty($errors)) {
 
         if ($fileName != "") {
 
-            $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+            $ext = strtolower(
+                pathinfo($fileName, PATHINFO_EXTENSION)
+            );
 
             $image = time() . "_" . $slug . "." . $ext;
 
-            $uploadPath = __DIR__ . "/../../../uploads/products/" . $image;
+            $uploadPath =
+                __DIR__ .
+                "/../../../uploads/products/" .
+                $image;
 
-            move_uploaded_file($tmpName, $uploadPath);
-
+            move_uploaded_file(
+                $tmpName,
+                $uploadPath
+            );
         }
 
         $product = new Product(
-
             $categoryId,
             $brandId,
             $proname,
@@ -116,7 +134,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $image,
             $description,
             $status
-
         );
 
         if ($productDAO->insert($product)) {
@@ -127,154 +144,360 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
 
             $errors[] = "Thêm sản phẩm thất bại.";
-
         }
-
     }
-
 }
 
 ob_start();
 ?>
 
-<form method="POST" enctype="multipart/form-data">
+<div class="container-fluid">
 
-    <!-- Danh mục -->
-    <div class="mb-3">
-        <label class="form-label">Danh mục</label>
+    <div class="card shadow">
 
-        <select name="categoryId" class="form-select">
+        <div class="card-header bg-white">
 
-            <?php foreach ($categories as $c): ?>
+            <h4 class="mb-0">
+                Thêm sản phẩm
+            </h4>
 
-                <option
-                    value="<?= $c->id ?>"
-                    <?= ($categoryId == $c->id) ? "selected" : "" ?>>
+        </div>
 
-                    <?= htmlspecialchars($c->name) ?>
+        <div class="card-body">
 
-                </option>
+            <?php if (!empty($errors)): ?>
 
-            <?php endforeach; ?>
+                <div class="alert alert-danger">
 
-        </select>
+                    <ul class="mb-0">
+
+                        <?php foreach ($errors as $error): ?>
+
+                            <li>
+                                <?= htmlspecialchars($error) ?>
+                            </li>
+
+                        <?php endforeach; ?>
+
+                    </ul>
+
+                </div>
+
+            <?php endif; ?>
+
+
+            <form method="POST" enctype="multipart/form-data">
+
+                <!-- DANH MỤC -->
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Danh mục
+                    </label>
+
+                    <select
+                        name="categoryId"
+                        class="form-select">
+
+                        <option value="">
+                            -- Chọn danh mục --
+                        </option>
+
+                        <?php foreach ($categories as $c): ?>
+
+                            <option
+                                value="<?= $c->id ?>"
+                                <?= ($categoryId == $c->id)
+                                    ? "selected"
+                                    : "" ?>>
+
+                                <?= htmlspecialchars(
+                                    $c->name ?? $c->catename ?? ""
+                                ) ?>
+
+                            </option>
+
+                        <?php endforeach; ?>
+
+                    </select>
+
+                </div>
+
+
+                <!-- THƯƠNG HIỆU -->
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Thương hiệu
+                    </label>
+
+                    <select
+                        name="brandId"
+                        class="form-select">
+
+                        <option value="">
+                            -- Chọn thương hiệu --
+                        </option>
+
+                        <?php foreach ($brands as $b): ?>
+
+                            <option
+                                value="<?= $b->id ?>"
+                                <?= ($brandId == $b->id)
+                                    ? "selected"
+                                    : "" ?>>
+
+                                <?= htmlspecialchars(
+                                    $b->brandname ?? $b->name ?? ""
+                                ) ?>
+
+                            </option>
+
+                        <?php endforeach; ?>
+
+                    </select>
+
+                </div>
+
+
+                <!-- TÊN SẢN PHẨM -->
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Tên sản phẩm
+                    </label>
+
+                    <input
+                        type="text"
+                        name="proname"
+                        class="form-control"
+                        value="<?= htmlspecialchars($proname) ?>">
+
+                </div>
+
+
+                <!-- SLUG -->
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Slug
+                    </label>
+
+                    <input
+                        type="text"
+                        name="slug"
+                        class="form-control"
+                        value="<?= htmlspecialchars($slug) ?>">
+
+                </div>
+
+
+                <!-- GIÁ -->
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Giá
+                    </label>
+
+                    <input
+                        type="number"
+                        name="price"
+                        class="form-control"
+                        value="<?= htmlspecialchars($price) ?>">
+
+                </div>
+
+
+                <!-- GIẢM GIÁ -->
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Giảm giá
+                    </label>
+
+                    <input
+                        type="number"
+                        name="discountPrice"
+                        class="form-control"
+                        value="<?= htmlspecialchars($discountPrice) ?>">
+
+                </div>
+
+
+                <!-- SỐ LƯỢNG -->
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Số lượng
+                    </label>
+
+                    <input
+                        type="number"
+                        name="quantity"
+                        class="form-control"
+                        value="<?= htmlspecialchars($quantity) ?>">
+
+                </div>
+
+
+                <!-- HÌNH ẢNH -->
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Hình ảnh
+                    </label>
+
+                    <input
+                        type="file"
+                        name="image"
+                        id="image"
+                        class="form-control"
+                        accept=".jpg,.jpeg,.png,.gif,.webp">
+
+                </div>
+
+
+                <!-- PREVIEW ẢNH -->
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Xem trước hình ảnh
+                    </label>
+
+                    <div>
+
+                        <img
+                            id="previewImage"
+                            src=""
+                            alt="Xem trước hình ảnh"
+                            class="img-thumbnail"
+                            style="
+                                width: 200px;
+                                height: 200px;
+                                object-fit: cover;
+                                display: none;
+                            ">
+
+                    </div>
+
+                </div>
+
+
+                <!-- MÔ TẢ -->
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Mô tả
+                    </label>
+
+                    <textarea
+                        name="description"
+                        rows="4"
+                        class="form-control"><?= htmlspecialchars($description) ?></textarea>
+
+                </div>
+
+
+                <!-- TRẠNG THÁI -->
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Trạng thái
+                    </label>
+
+                    <select
+                        name="status"
+                        class="form-select">
+
+                        <option
+                            value="1"
+                            <?= $status == 1 ? "selected" : "" ?>>
+
+                            Hiển thị
+
+                        </option>
+
+                        <option
+                            value="0"
+                            <?= $status == 0 ? "selected" : "" ?>>
+
+                            Ẩn
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- BUTTON -->
+                <button
+                    type="submit"
+                    class="btn btn-success">
+
+                    <i class="fa fa-save"></i>
+                    Lưu
+
+                </button>
+
+
+                <a
+                    href="index.php"
+                    class="btn btn-secondary">
+
+                    Quay lại
+
+                </a>
+
+            </form>
+
+        </div>
+
     </div>
 
-    <!-- Thương hiệu -->
-    <div class="mb-3">
-        <label class="form-label">Thương hiệu</label>
+</div>
 
-        <select name="brandId" class="form-select">
 
-            <?php foreach ($brands as $b): ?>
+<!-- JAVASCRIPT PREVIEW ẢNH -->
+<script>
 
-                <option
-                    value="<?= $b->id ?>"
-                    <?= ($brandId == $b->id) ? "selected" : "" ?>>
+document.getElementById("image").addEventListener("change", function(event) {
 
-                    <?= htmlspecialchars($b->brandname) ?>
+    const file = event.target.files[0];
 
-                </option>
+    const preview = document.getElementById("previewImage");
 
-            <?php endforeach; ?>
+    if (file) {
 
-        </select>
-    </div>
+        const reader = new FileReader();
 
-    <div class="mb-3">
-        <label class="form-label">Tên sản phẩm</label>
+        reader.onload = function(e) {
 
-        <input
-            type="text"
-            name="proname"
-            class="form-control"
-            value="<?= htmlspecialchars($proname) ?>">
-    </div>
+            preview.src = e.target.result;
 
-    <div class="mb-3">
-        <label class="form-label">Slug</label>
+            preview.style.display = "block";
 
-        <input
-            type="text"
-            name="slug"
-            class="form-control"
-            value="<?= htmlspecialchars($slug) ?>">
-    </div>
+        };
 
-    <div class="mb-3">
-        <label class="form-label">Giá</label>
+        reader.readAsDataURL(file);
 
-        <input
-            type="number"
-            name="price"
-            class="form-control"
-            value="<?= htmlspecialchars($price) ?>">
-    </div>
+    } else {
 
-    <div class="mb-3">
-        <label class="form-label">Giảm giá</label>
+        preview.src = "";
 
-        <input
-            type="number"
-            name="discountPrice"
-            class="form-control"
-            value="<?= htmlspecialchars($discountPrice) ?>">
-    </div>
+        preview.style.display = "none";
 
-    <div class="mb-3">
-        <label class="form-label">Số lượng</label>
+    }
 
-        <input
-            type="number"
-            name="quantity"
-            class="form-control"
-            value="<?= htmlspecialchars($quantity) ?>">
-    </div>
+});
 
-    <div class="mb-3">
-        <label class="form-label">Hình ảnh</label>
+</script>
 
-        <input
-            type="file"
-            name="image"
-            class="form-control"
-            accept=".jpg,.jpeg,.png,.gif,.webp">
-    </div>
 
-    <div class="mb-3">
-        <label class="form-label">Mô tả</label>
-
-        <textarea
-            name="description"
-            rows="4"
-            class="form-control"><?= htmlspecialchars($description) ?></textarea>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Trạng thái</label>
-
-        <select name="status" class="form-select">
-
-            <option value="1" <?= $status == 1 ? "selected" : "" ?>>
-                Hiển thị
-            </option>
-
-            <option value="0" <?= $status == 0 ? "selected" : "" ?>>
-                Ẩn
-            </option>
-
-        </select>
-    </div>
-
-    <button type="submit" class="btn btn-success">
-        <i class="fa fa-save"></i> Lưu
-    </button>
-
-    <a href="index.php" class="btn btn-secondary">
-        Quay lại
-    </a>
-</form>
 <?php
+
 $content = ob_get_clean();
+
 include "../layouts/master.php";
+
 ?>
