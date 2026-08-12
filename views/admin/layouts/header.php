@@ -1,40 +1,77 @@
-<!DOCTYPE html>
-<html lang="vi">
+<?php
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $pageTitle ?? "Mini Shop Admin" ?></title>
+// Đảm bảo User đã được load trước khi đọc session
+require_once __DIR__ . "/../../../models/User.php";
 
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-</head>
+$user = $_SESSION["user"] ?? null;
 
-<body class="bg-light">
+?>
 
-    <header class="bg-white border-bottom shadow-sm">
+<header class="admin-header bg-white border-bottom shadow-sm">
 
-        <div class="container-fluid d-flex justify-content-between align-items-center py-3 px-4">
+    <div class="container-fluid d-flex justify-content-between align-items-center px-4 h-100">
 
-            <h4 class="mb-0 fw-bold text-primary">
-                <i class="fa-solid fa-store me-2"></i>
-                Mini Shop Admin
-            </h4>
+        <!-- LOGO -->
 
-            <div class="d-flex align-items-center">
+        <h4 class="mb-0 fw-bold text-primary">
 
-                <i class="fa-solid fa-user-circle fs-4 me-2 text-secondary"></i>
+            <i class="fa-solid fa-store me-2"></i>
 
-                <span class="fw-semibold">
-                    Admin
-                </span>
+            Mini Shop Admin
 
-            </div>
+        </h4>
+
+
+        <!-- USER -->
+
+        <div class="d-flex align-items-center gap-3">
+
+            <?php if ($user): ?>
+
+                <div class="d-flex align-items-center">
+
+                    <i class="fa-solid fa-circle-user fs-3 me-2 text-secondary"></i>
+
+                    <div>
+
+                        <div class="fw-semibold">
+
+                            <?= htmlspecialchars($user->fullname ?? "Người dùng") ?>
+
+                        </div>
+
+                        <small class="text-muted">
+
+                            <?= htmlspecialchars($user->username ?? "") ?>
+
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <!-- LOGOUT -->
+
+                <a
+                    href="logout.php"
+                    class="btn btn-outline-danger btn-sm"
+                >
+
+                    <i class="fa-solid fa-right-from-bracket me-1"></i>
+
+                    Đăng xuất
+
+                </a>
+
+            <?php endif; ?>
 
         </div>
 
-    </header>
+    </div>
+
+</header>

@@ -2,24 +2,29 @@
 
 session_start();
 
+require_once __DIR__ . "/../../models/User.php";
 require_once __DIR__ . "/../../dao/UserDAO.php";
+require_once __DIR__ . "/../../middleware/GuestMiddleware.php";
+require_once __DIR__ . "/../../middleware/CsrfMiddleware.php";
+
+// Nếu đã đăng nhập thì không cho vào login
+GuestMiddleware::handle();
+
+// Tạo CSRF Token
+CsrfMiddleware::generateToken();
 
 $username = "";
 $password = "";
-
 $errors = [];
-
-// Nếu đã đăng nhập thì chuyển thẳng vào dashboard
-if (isset($_SESSION["user"])) {
-    header("Location: index.php");
-    exit;
-}
 
 // =========================
 // XỬ LÝ ĐĂNG NHẬP
 // =========================
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+    // Kiểm tra CSRF
+    CsrfMiddleware::verify();
 
     $username = trim($_POST["username"] ?? "");
     $password = $_POST["password"] ?? "";
@@ -54,15 +59,48 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $errors["password"] = "Mật khẩu không chính xác.";
 
+        } elseif ((int)$user->status !== 1) {
+
+            $errors["username"] = "Tài khoản đã bị khóa.";
+
         } else {
 
             // =========================
             // ĐĂNG NHẬP THÀNH CÔNG
             // =========================
 
+            session_regenerate_id(true);
+
             $_SESSION["user"] = $user;
 
-            header("Location: index.php");
+            // =========================
+            // REMEMBER ME
+            // =========================
+
+            if (isset($_POST["remember"])) {
+
+                setcookie(
+                    "remember_username",
+                    $user->username,
+                    time() + (30 * 24 * 60 * 60),
+                    "/"
+                );
+
+            } else {
+
+                setcookie(
+                    "remember_username",
+                    "",
+                    time() - 3600,
+                    "/"
+                );
+            }
+
+            // =========================
+            // CHUYỂN ĐẾN DASHBOARD
+            // =========================
+
+            header("Location: dashboard.php");
             exit;
         }
     }
@@ -134,7 +172,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         <div class="col-12 col-sm-8 col-md-5 col-lg-4">
 
-            <div class="mt-4">
+            <div class="mt-5">
 
                 <h4 class="text-center fw-bold mb-4">
                     Đăng nhập
@@ -143,6 +181,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <form
                     action="login.php"
                     method="POST">
+
+                    <!-- CSRF -->
+
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="<?= htmlspecialchars($_SESSION["csrf_token"] ?? "") ?>">
+
 
                     <!-- USERNAME -->
 
@@ -187,6 +233,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     </div>
 
 
+                    <!-- REMEMBER -->
+
+                    <div class="mb-3 form-check">
+
+                        <input
+                            type="checkbox"
+                            name="remember"
+                            class="form-check-input"
+                            id="remember">
+
+                        <label
+                            class="form-check-label"
+                            for="remember">
+
+                            Ghi nhớ đăng nhập
+
+                        </label>
+
+                    </div>
+
+
                     <!-- QUÊN MẬT KHẨU -->
 
                     <div class="text-end mb-4">
@@ -202,7 +269,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     </div>
 
 
-                    <!-- ĐĂNG NHẬP -->
+                    <!-- LOGIN -->
 
                     <div class="d-grid">
 
@@ -210,14 +277,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             type="submit"
                             class="btn btn-danger py-3">
 
-                            Đăng Nhập Ngay
+                            Đăng nhập
 
                         </button>
 
                     </div>
 
 
-                    <!-- ĐĂNG KÝ -->
+                    <!-- REGISTER -->
 
                     <div class="d-grid mt-2">
 
@@ -232,7 +299,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     </div>
 
 
-                    <!-- ĐIỀU KHOẢN -->
+                    <!-- TERMS -->
 
                     <div class="text-center mt-3">
 
