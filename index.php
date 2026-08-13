@@ -1,31 +1,71 @@
 <?php
 
-// ========================================
-// LOAD CONTROLLER
-// ========================================
+require_once __DIR__ . '/autoload.php';
 
-require_once __DIR__ . "/controllers/admin/ProductController.php";
-
-// Sau này sẽ thêm:
-// require_once __DIR__ . "/controllers/admin/CategoryController.php";
-// require_once __DIR__ . "/controllers/admin/BrandController.php";
-// require_once __DIR__ . "/controllers/admin/AuthController.php";
+session_start();
 
 
 // ========================================
 // NHẬN REQUEST
 // ========================================
 
+$area = $_GET["area"] ?? "admin";
 $controller = $_GET["controller"] ?? "product";
-
 $action = $_GET["action"] ?? "index";
+
+
+// ========================================
+// AUTHENTICATION ADMIN
+// ========================================
+
+if ($area === "admin" && $controller !== "auth") {
+
+    \Middleware\AuthMiddleware::handle();
+}
+
+
+// ========================================
+// GUEST MIDDLEWARE
+// ========================================
+
+if (
+    $area === "admin" &&
+    $controller === "auth" &&
+    $action === "login"
+) {
+
+    \Middleware\GuestMiddleware::handle();
+}
+
+
+// ========================================
+// CSRF TOKEN
+// ========================================
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+    \Middleware\CsrfMiddleware::generateToken();
+}
 
 
 // ========================================
 // XÁC ĐỊNH CONTROLLER
 // ========================================
 
-$controllerClass = ucfirst($controller) . "Controller";
+if ($area === "admin") {
+
+    $controllerClass =
+        "Controllers\\Admin\\"
+        . ucfirst($controller)
+        . "Controller";
+
+} else {
+
+    $controllerClass =
+        "Controllers\\Client\\"
+        . ucfirst($controller)
+        . "Controller";
+}
 
 
 // ========================================
@@ -34,7 +74,7 @@ $controllerClass = ucfirst($controller) . "Controller";
 
 if (!class_exists($controllerClass)) {
 
-    die("Controller không tồn tại: " . htmlspecialchars($controllerClass));
+    die("Controller không tồn tại: " . $controllerClass);
 }
 
 
@@ -51,17 +91,12 @@ $controllerObject = new $controllerClass();
 
 if (!method_exists($controllerObject, $action)) {
 
-    die(
-        "Action không tồn tại: "
-        . htmlspecialchars($action)
-        . " trong "
-        . htmlspecialchars($controllerClass)
-    );
-} 
+    die("Action không tồn tại: " . $action);
+}
 
 
 // ========================================
 // GỌI ACTION
 // ========================================
 
-$controllerObject->$action(); 
+$controllerObject->$action();

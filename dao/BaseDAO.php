@@ -1,5 +1,8 @@
 <?php
-require_once __DIR__ . "/../config/Database.php";
+namespace DAO;
+
+use Config\Database;
+// require_once __DIR__ . "/../config/Database.php";
 class BaseDAO extends Database
 {
     public function __construct()
@@ -17,12 +20,12 @@ class BaseDAO extends Database
     return (int)$row["total"];
     }
     // Thực thi câu lệnh SELECT
-    protected function executeQuery(string $sql): mysqli_result|false
+    protected function executeQuery(string $sql): \mysqli_result|false
     {
         return $this->conn->query($sql);
     }
     // Chuẩn bị câu lệnh Prepared Statement
-    protected function prepare(string $sql): mysqli_stmt|false
+    protected function prepare(string $sql): \mysqli_stmt|false
     {
         return $this->conn->prepare($sql);
     }

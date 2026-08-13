@@ -12,21 +12,17 @@ spl_autoload_register(function ($className) {
 
     foreach ($prefixes as $prefix => $baseDir) {
 
-        // Kiểm tra class có thuộc namespace này không
         if (str_starts_with($className, $prefix)) {
 
-            // Bỏ namespace gốc
             $relativeClass = substr(
                 $className,
                 strlen($prefix)
             );
 
-            // Đổi \ thành /
             $file = $baseDir
                 . str_replace('\\', '/', $relativeClass)
                 . '.php';
 
-            // Nếu file tồn tại thì load
             if (file_exists($file)) {
                 require_once $file;
             }

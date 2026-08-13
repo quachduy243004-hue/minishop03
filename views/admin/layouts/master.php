@@ -1,32 +1,36 @@
 <?php
-
+// require_once __DIR__ . '/autoload.php';
+// Nhận Request
+$area = $_GET["area"] ?? "admin";
+$controller = $_GET["controller"] ?? "product";
+$action = $_GET["action"] ?? "index";
 // ========================================
 // LOAD CLASS
 // ========================================
 
-require_once __DIR__ . "/../../../models/User.php";
-require_once __DIR__ . "/../../../middleware/AuthMiddleware.php";
-require_once __DIR__ . "/../../../middleware/CsrfMiddleware.php";
+// require_once __DIR__ . "/../../../models/User.php";
+// require_once __DIR__ . "/../../../middleware/AuthMiddleware.php";
+// require_once __DIR__ . "/../../../middleware/CsrfMiddleware.php";
 
 // ========================================
 // START SESSION
 // ========================================
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// if (session_status() === PHP_SESSION_NONE) {
+//     session_start();
+// }
 
 // ========================================
 // KIỂM TRA ĐĂNG NHẬP
 // ========================================
 
-AuthMiddleware::handle();
+// AuthMiddleware::handle();
 
 // ========================================
 // CSRF TOKEN
 // ========================================
 
-CsrfMiddleware::generateToken();
+// CsrfMiddleware::generateToken();
 
 ?>
 

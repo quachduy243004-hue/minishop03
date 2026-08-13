@@ -1,6 +1,10 @@
 <?php
-require_once __DIR__ . "/BaseDAO.php";
-require_once __DIR__ . "/../models/Product.php";
+namespace DAO;
+
+use Models\Product;
+
+// require_once __DIR__ . "/BaseDAO.php";
+// require_once __DIR__ . "/../models/Product.php";
 
 class ProductDAO extends BaseDAO
 {
@@ -53,7 +57,7 @@ class ProductDAO extends BaseDAO
 
                 $list[] = $product;
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
 
@@ -94,7 +98,7 @@ class ProductDAO extends BaseDAO
 
                 return $product;
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
 
@@ -138,7 +142,7 @@ class ProductDAO extends BaseDAO
             );
 
             return $stmt->execute();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -180,7 +184,7 @@ class ProductDAO extends BaseDAO
             );
 
             return $stmt->execute();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -197,7 +201,7 @@ class ProductDAO extends BaseDAO
             $stmt->bind_param("i", $id);
 
             return $stmt->execute();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }

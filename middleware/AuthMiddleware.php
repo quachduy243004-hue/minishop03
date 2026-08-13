@@ -1,5 +1,7 @@
 <?php
 
+namespace Middleware;
+
 class AuthMiddleware
 {
     public static function handle()
@@ -9,7 +11,11 @@ class AuthMiddleware
         }
 
         if (!isset($_SESSION["user"])) {
-            header("Location: login.php");
+
+            header(
+                "Location: index.php?area=admin&controller=auth&action=login"
+            );
+
             exit;
         }
     }

@@ -1,7 +1,9 @@
 <?php
+namespace DAO;
 
-require_once __DIR__ . "/BaseDAO.php";
-require_once __DIR__ . "/../models/User.php";
+use Models\User;
+// require_once __DIR__ . "/BaseDAO.php";
+// require_once __DIR__ . "/../models/User.php";
 
 class UserDAO extends BaseDAO
 {
@@ -25,7 +27,7 @@ class UserDAO extends BaseDAO
 
         while ($row = $result->fetch_assoc()) {
 
-            $user = new User(
+            $user = new \User(
                 $row["fullname"],
                 $row["username"],
                 $row["password"],
@@ -57,7 +59,7 @@ class UserDAO extends BaseDAO
     // TÌM USER THEO ID
     // ================================
 
-    public function findById(int $id): ?User
+    public function findById(int $id): ?\User
     {
         $sql = "SELECT * FROM users WHERE id = ?";
 
@@ -75,7 +77,7 @@ class UserDAO extends BaseDAO
             return null;
         }
 
-        $user = new User(
+        $user = new \User(
             $row["fullname"],
             $row["username"],
             $row["password"],
@@ -104,7 +106,7 @@ class UserDAO extends BaseDAO
     // TÌM USER THEO USERNAME
     // ================================
 
-    public function findByUsername(string $username): ?User
+    public function findByUsername(string $username): ?\User
     {
         $sql = "SELECT * FROM users WHERE username = ?";
 
@@ -126,7 +128,7 @@ class UserDAO extends BaseDAO
             return null;
         }
 
-        $user = new User(
+        $user = new \User(
             $row["fullname"],
             $row["username"],
             $row["password"],
@@ -155,7 +157,7 @@ class UserDAO extends BaseDAO
     // THÊM USER
     // ================================
 
-    public function insert(User $user): bool
+    public function insert(\User $user): bool
     {
         $sql = "INSERT INTO users
                 (
@@ -192,7 +194,7 @@ class UserDAO extends BaseDAO
     // UPDATE USER
     // ================================
 
-    public function update(User $user): bool
+    public function update(\User $user): bool
     {
         $sql = "UPDATE users
                 SET

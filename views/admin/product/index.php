@@ -1,9 +1,11 @@
 <?php
+namespace Controllers\Admin;
 
-require_once __DIR__ . "/../../../dao/ProductDAO.php";
-require_once __DIR__ . "/../../../dao/CategoryDAO.php";
-require_once __DIR__ . "/../../../dao/BrandDAO.php";
-require_once __DIR__ . "/../../../models/Product.php";
+use DAO\ProductDAO;
+// require_once __DIR__ . "/../../../dao/ProductDAO.php";
+// require_once __DIR__ . "/../../../dao/CategoryDAO.php";
+// require_once __DIR__ . "/../../../dao/BrandDAO.php";
+// require_once __DIR__ . "/../../../models/Product.php";
 
 $pageTitle = "Quản lý sản phẩm";
 
@@ -1006,6 +1008,6 @@ ob_start();
 
 $content = ob_get_clean();
 
-include "../layouts/master.php";
+include  __DIR__. "/../layouts/master.php";
 
 ?>
