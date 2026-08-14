@@ -1,159 +1,255 @@
 <?php
-require_once __DIR__ . "/BaseDAO.php";
-require_once __DIR__ . "/../models/Category.php";
+
+namespace DAO;
+
+use Models\Category;
+
 class CategoryDAO extends BaseDAO
 {
     public function __construct()
     {
         parent::__construct();
     }
-    // Lấy tất cả danh mục
+
+    // =========================================================
+    // LẤY TẤT CẢ DANH MỤC
+    // =========================================================
     public function getAll(): array
     {
         $list = [];
-        try {
-            // Hạn chế dùng SELECT * (nên chỉ định rõ cột cần truy vấn)
-            $sql = "SELECT * FROM categories ORDER BY catename";
-            $result = $this->executeQuery($sql);
-            while ($row = $result->fetch_assoc()) {
-                $category = new Category(
-                    $row["catename"],
-                    $row["slug"],
-                    $row["image"],
-                    $row["description"],
-                    $row["status"]
-                );
-                $category->id = $row["id"];
-                $category->createdAt = $row["created_at"];
-                $category->updatedAt = $row["updated_at"];
-                $list[] = $category;
-            }
-        } catch (Exception $e) {
-            throw $e;
+
+        $sql = "SELECT *
+                FROM categories
+                ORDER BY catename ASC";
+
+        $result = $this->executeQuery($sql);
+
+        while ($row = $result->fetch_assoc()) {
+
+            $category = new Category(
+                $row["catename"] ?? "",
+                $row["slug"] ?? "",
+                $row["image"] ?? null,
+                $row["description"] ?? null,
+                (int)($row["status"] ?? 1)
+            );
+
+            $category->id = (int)$row["id"];
+            $category->createdAt = $row["created_at"] ?? null;
+            $category->updatedAt = $row["updated_at"] ?? null;
+
+            $list[] = $category;
         }
+
         return $list;
     }
-    // Tìm theo ID
+
+    // =========================================================
+    // TÌM THEO ID
+    // =========================================================
     public function findById(int $id): ?Category
     {
-        try {
-            $sql = "SELECT * FROM categories WHERE id=?";
-            $stmt = $this->prepare($sql);
-            $stmt->bind_param("i", $id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            if ($row = $result->fetch_assoc()) {
-                $category = new Category(
-                    $row["catename"],
-                    $row["slug"],
-                    $row["image"],
-                    $row["description"],
-                    $row["status"]
-                );
-                $category->id = $row["id"];
-                $category->createdAt = $row["created_at"];
-                $category->updatedAt = $row["updated_at"];
-                return $category;
-            }
-        } catch (Exception $e) {
-            throw $e;
+        $sql = "SELECT *
+                FROM categories
+                WHERE id = ?";
+
+        $stmt = $this->prepare($sql);
+
+        $stmt->bind_param("i", $id);
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        if ($row = $result->fetch_assoc()) {
+
+            $category = new Category(
+                $row["catename"] ?? "",
+                $row["slug"] ?? "",
+                $row["image"] ?? null,
+                $row["description"] ?? null,
+                (int)($row["status"] ?? 1)
+            );
+
+            $category->id = (int)$row["id"];
+            $category->createdAt = $row["created_at"] ?? null;
+            $category->updatedAt = $row["updated_at"] ?? null;
+
+            return $category;
         }
+
         return null;
     }
-    // Thêm danh mục
+
+    // =========================================================
+    // THÊM DANH MỤC
+    // =========================================================
     public function insert(Category $category): bool
     {
-        try {
-            $sql = "INSERT INTO categories(catename,slug,image,description,status)
-VALUES(?,?,?,?,?)";
-            $stmt = $this->prepare($sql);
-            $stmt->bind_param(
-                "ssssi",
-                $category->name,
-                $category->slug,
-                $category->image,
-                $category->description,
-                $category->status
-            );
-            return $stmt->execute();
-        } catch (Exception $e) {
-            throw $e;
-        }
-    }
-    // Cập nhật danh mục
-    public function update(Category $category): bool
-    {
-        try {
-            $sql = "UPDATE categories
-SET
-catename=?,
-slug=?,
-image=?,
-description=?,
-status=?
-WHERE id=?";
-            $stmt = $this->prepare($sql);
-            $stmt->bind_param(
-                "ssssii",
-                $category->name,
-                $category->slug,
-                $category->image,
-                $category->description,
-                $category->status,
-                $category->id
-            );
-            return $stmt->execute();
-        } catch (Exception $e) {
-            throw $e;
-        }
-    }
-    // Xóa danh mục
-    public function delete(int $id): bool
-    {
-        try {
-            $sql = "DELETE FROM categories WHERE id=?";
-            $stmt = $this->prepare($sql);
-            $stmt->bind_param("i", $id);
-            return $stmt->execute();
-        } catch (Exception $e) {
-            throw $e;
-        }
-    }
-public function search(string $keyword): array
-{
-    $list = [];
+        $sql = "INSERT INTO categories
+                (
+                    catename,
+                    slug,
+                    image,
+                    description,
+                    status
+                )
+                VALUES (?, ?, ?, ?, ?)";
 
-    $sql = "SELECT * FROM categories
-            WHERE catename LIKE ?
-            ORDER BY catename";
+        $stmt = $this->prepare($sql);
 
-    $stmt = $this->prepare($sql);
-
-    $key = "%".$keyword."%";
-
-    $stmt->bind_param("s", $key);
-
-    $stmt->execute();
-
-    $result = $stmt->get_result();
-
-    while ($row = $result->fetch_assoc()) {
-
-        $category = new Category(
-            $row["catename"],
-            $row["slug"],
-            $row["image"],
-            $row["description"],
-            $row["status"]
+        $stmt->bind_param(
+            "ssssi",
+            $category->name,
+            $category->slug,
+            $category->image,
+            $category->description,
+            $category->status
         );
 
-        $category->id = $row["id"];
-        $category->createdAt = $row["created_at"];
-        $category->updatedAt = $row["updated_at"];
-
-        $list[] = $category;
+        return $stmt->execute();
     }
 
-    return $list;
-}
+    // =========================================================
+    // CẬP NHẬT DANH MỤC
+    // =========================================================
+    public function update(Category $category): bool
+    {
+        $sql = "UPDATE categories
+                SET
+                    catename = ?,
+                    slug = ?,
+                    image = ?,
+                    description = ?,
+                    status = ?
+                WHERE id = ?";
+
+        $stmt = $this->prepare($sql);
+
+        $stmt->bind_param(
+            "ssssii",
+            $category->name,
+            $category->slug,
+            $category->image,
+            $category->description,
+            $category->status,
+            $category->id
+        );
+
+        return $stmt->execute();
+    }
+
+    // =========================================================
+    // XÓA DANH MỤC
+    // =========================================================
+    public function delete(int $id): bool
+    {
+        $sql = "DELETE FROM categories
+                WHERE id = ?";
+
+        $stmt = $this->prepare($sql);
+
+        $stmt->bind_param("i", $id);
+
+        return $stmt->execute();
+    }
+
+    // =========================================================
+    // TÌM KIẾM
+    // =========================================================
+    public function search(string $keyword): array
+    {
+        $list = [];
+
+        $sql = "SELECT *
+                FROM categories
+                WHERE catename LIKE ?
+                   OR slug LIKE ?
+                ORDER BY catename ASC";
+
+        $stmt = $this->prepare($sql);
+
+        $key = "%" . $keyword . "%";
+
+        $stmt->bind_param(
+            "ss",
+            $key,
+            $key
+        );
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        while ($row = $result->fetch_assoc()) {
+
+            $category = new Category(
+                $row["catename"] ?? "",
+                $row["slug"] ?? "",
+                $row["image"] ?? null,
+                $row["description"] ?? null,
+                (int)($row["status"] ?? 1)
+            );
+
+            $category->id = (int)$row["id"];
+            $category->createdAt = $row["created_at"] ?? null;
+            $category->updatedAt = $row["updated_at"] ?? null;
+
+            $list[] = $category;
+        }
+
+        return $list;
+    }
+
+    // =========================================================
+    // KIỂM TRA SLUG
+    // DÙNG CHO CREATE
+    // =========================================================
+    public function existsBySlug(string $slug): bool
+    {
+        $sql = "SELECT id
+                FROM categories
+                WHERE slug = ?
+                LIMIT 1";
+
+        $stmt = $this->prepare($sql);
+
+        $stmt->bind_param("s", $slug);
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        return $result->num_rows > 0;
+    }
+
+    // =========================================================
+    // KIỂM TRA SLUG KHI EDIT
+    // LOẠI TRỪ ID HIỆN TẠI
+    // =========================================================
+    public function existsBySlugExceptId(
+        string $slug,
+        int $id
+    ): bool {
+
+        $sql = "SELECT id
+                FROM categories
+                WHERE slug = ?
+                  AND id != ?
+                LIMIT 1";
+
+        $stmt = $this->prepare($sql);
+
+        $stmt->bind_param(
+            "si",
+            $slug,
+            $id
+        );
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        return $result->num_rows > 0;
+    }
 }

@@ -1,19 +1,17 @@
 <?php
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 $user = $_SESSION["user"] ?? null;
 
-// Lấy thông tin user an toàn
 $fullname = "Người dùng";
 $username = "";
 
-if (is_object($user)) {
+if ($user instanceof \Models\User) {
+
     $fullname = $user->fullname ?? "Người dùng";
     $username = $user->username ?? "";
+
 } elseif (is_array($user)) {
+
     $fullname = $user["fullname"] ?? "Người dùng";
     $username = $user["username"] ?? "";
 }
@@ -25,6 +23,7 @@ if (is_object($user)) {
     <div class="container-fluid d-flex justify-content-between align-items-center px-4 h-100">
 
         <!-- LOGO -->
+
         <h4 class="mb-0 fw-bold text-primary">
 
             <i class="fa-solid fa-store me-2"></i>
@@ -33,7 +32,9 @@ if (is_object($user)) {
 
         </h4>
 
+
         <!-- USER -->
+
         <div class="d-flex align-items-center gap-3">
 
             <?php if ($user): ?>
@@ -45,20 +46,26 @@ if (is_object($user)) {
                     <div>
 
                         <div class="fw-semibold">
+
                             <?= htmlspecialchars($fullname) ?>
+
                         </div>
 
                         <small class="text-muted">
+
                             <?= htmlspecialchars($username) ?>
+
                         </small>
 
                     </div>
 
                 </div>
 
+
                 <!-- LOGOUT -->
+
                 <a
-                    href="index.php?area=admin&controller=auth&action=logout"
+                    href="/MiniShop_quachvanduy/admin/logout"
                     class="btn btn-outline-danger btn-sm"
                 >
 
@@ -71,10 +78,12 @@ if (is_object($user)) {
             <?php else: ?>
 
                 <a
-                    href="index.php?area=admin&controller=auth&action=login"
+                    href="/MiniShop_quachvanduy/admin/login"
                     class="btn btn-outline-primary btn-sm"
                 >
+
                     Đăng nhập
+
                 </a>
 
             <?php endif; ?>

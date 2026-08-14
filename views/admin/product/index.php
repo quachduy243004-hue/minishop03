@@ -1,318 +1,204 @@
 <?php
-namespace Controllers\Admin;
 
-use DAO\ProductDAO;
-// require_once __DIR__ . "/../../../dao/ProductDAO.php";
-// require_once __DIR__ . "/../../../dao/CategoryDAO.php";
-// require_once __DIR__ . "/../../../dao/BrandDAO.php";
-// require_once __DIR__ . "/../../../models/Product.php";
+/*
+|--------------------------------------------------------------------------
+| NHẬN DỮ LIỆU TỪ CONTROLLER
+|--------------------------------------------------------------------------
+*/
 
-$pageTitle = "Quản lý sản phẩm";
+$list = $list ?? [];
 
-$productDAO = new ProductDAO();
+$keyword = $keyword ?? "";
 
-$message = "";
+$limit = $limit ?? 10;
 
-// ======================================================
-// XÓA SẢN PHẨM
-// ======================================================
+$page = $page ?? 1;
 
-if (isset($_POST["btnDelete"])) {
+$sort = $sort ?? "name_asc";
 
-    $id = intval($_POST["id"]);
+$totalRecords = $totalRecords ?? 0;
+
+$totalPages = $totalPages ?? 0;
+
+$offset = $offset ?? 0;
+
+$message = $message ?? "";
 
 
-    if ($productDAO->delete($id)) {
+/*
+|--------------------------------------------------------------------------
+| CSRF
+|--------------------------------------------------------------------------
+*/
 
-        header("Location: index.php");
-        exit;
-
-    } else {
-
-        $message = "Xóa sản phẩm thất bại!";
-    }
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-
-// ======================================================
-// LẤY KEYWORD
-// ======================================================
-
-$keyword = trim($_GET["keyword"] ?? "");
+$csrfToken = $_SESSION["csrf_token"] ?? "";
 
 
-// ======================================================
-// LẤY LIMIT
-// ======================================================
+/*
+|--------------------------------------------------------------------------
+| TITLE
+|--------------------------------------------------------------------------
+*/
 
-$limit = (int)($_GET["limit"] ?? 10);
-
-
-// Chỉ cho phép 10, 20, 30
-
-if (!in_array($limit, [10, 20, 30])) {
-
-    $limit = 10;
-}
-
-
-// ======================================================
-// LẤY PAGE
-// ======================================================
-
-$page = (int)($_GET["page"] ?? 1);
-
-
-if ($page < 1) {
-
-    $page = 1;
-}
-
-
-// ======================================================
-// LẤY SORT
-// ======================================================
-
-$sort = $_GET["sort"] ?? "name_asc";
-
-
-// Các kiểu sort được phép
-
-$allowedSort = [
-
-    "name_asc",
-    "name_desc",
-    "price_asc",
-    "price_desc"
-
-];
-
-
-if (!in_array($sort, $allowedSort)) {
-
-    $sort = "name_asc";
-}
-
-
-// ======================================================
-// ĐẾM TỔNG SẢN PHẨM
-// ======================================================
-
-$totalRecords = $productDAO->count(
-    "products",
-    "proname",
-    $keyword
-);
-
-
-// ======================================================
-// TÍNH TỔNG SỐ TRANG
-// ======================================================
-
-$totalPages = (int)ceil(
-    $totalRecords / $limit
-);
-
-
-// ======================================================
-// NẾU PAGE VƯỢT QUÁ TỔNG TRANG
-// ======================================================
-
-if ($totalPages > 0 && $page > $totalPages) {
-
-    $page = $totalPages;
-}
-
-
-// ======================================================
-// OFFSET
-// ======================================================
-
-$offset = ($page - 1) * $limit;
-
-
-// ======================================================
-// LẤY DANH SÁCH
-// ======================================================
-
-$list = $productDAO->getPage(
-
-    $limit,
-    $offset,
-    $keyword,
-    $sort
-
-);
+$pageTitle = $pageTitle ?? "Quản lý sản phẩm";
 
 
 ob_start();
 
 ?>
 
-
 <div class="container-fluid">
 
 
-    <!-- ==================================================
-         CARD
-    ================================================== -->
+    <!-- ==========================================================
+         HEADER
+    =========================================================== -->
 
-    <div class="card shadow">
+    <div class="d-flex justify-content-between align-items-center mb-3">
 
+        <div>
 
-        <!-- ==================================================
-             HEADER
-        ================================================== -->
+            <h3 class="mb-0">
+                Quản lý sản phẩm
+            </h3>
 
-        <div class="card-header bg-white">
-
-
-            <div class="d-flex justify-content-between align-items-center">
-
-
-                <h4 class="mb-0">
-
-                    Quản lý sản phẩm
-
-                </h4>
-
-
-                <a
-                    href="create.php"
-                    class="btn btn-primary btn-sm">
-
-                    <i class="fa fa-plus-circle"></i>
-
-                    Thêm sản phẩm
-
-                </a>
-
-
-            </div>
+            <small class="text-muted">
+                Danh sách sản phẩm
+            </small>
 
         </div>
 
 
-        <!-- ==================================================
-             BODY
-        ================================================== -->
+        <a
+            href="/MiniShop_quachvanduy/admin/product/create"
+            class="btn btn-primary"
+        >
+
+            <i class="fa fa-plus-circle"></i>
+
+            Thêm sản phẩm
+
+        </a>
+
+    </div>
+
+
+
+    <!-- ==========================================================
+         SEARCH + SORT
+    =========================================================== -->
+
+    <div class="card shadow-sm mb-3">
 
         <div class="card-body">
 
-
-            <!-- ==================================================
-                 TÌM KIẾM + SẮP XẾP
-            ================================================== -->
-
-            <div class="row mb-3">
+            <div class="row g-2">
 
 
-                <!-- =========================
-                     TÌM KIẾM
-                ========================== -->
+                <!-- SEARCH -->
 
-                <div class="col-md-5">
+                <div class="col-md-6">
 
+                    <form method="GET">
 
-                    <form
-                        method="GET"
-                        class="d-flex">
+                        <div class="input-group">
 
-
-                        <input
-                            type="text"
-                            name="keyword"
-                            value="<?= htmlspecialchars($keyword) ?>"
-                            class="form-control"
-                            placeholder="Nhập tên sản phẩm...">
+                            <input
+                                type="text"
+                                name="keyword"
+                                value="<?= htmlspecialchars($keyword) ?>"
+                                class="form-control"
+                                placeholder="Tìm kiếm sản phẩm..."
+                            >
 
 
-                        <!-- Giữ limit -->
-
-                        <input
-                            type="hidden"
-                            name="limit"
-                            value="<?= $limit ?>">
-
-
-                        <!-- Giữ sort -->
-
-                        <input
-                            type="hidden"
-                            name="sort"
-                            value="<?= htmlspecialchars($sort) ?>">
+                            <input
+                                type="hidden"
+                                name="limit"
+                                value="<?= (int)$limit ?>"
+                            >
 
 
-                        <button
-                            type="submit"
-                            class="btn btn-success ms-2">
+                            <input
+                                type="hidden"
+                                name="sort"
+                                value="<?= htmlspecialchars($sort) ?>"
+                            >
 
-                            <i class="fa fa-search"></i>
 
-                            Tìm
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                            >
 
-                        </button>
+                                <i class="fa fa-search"></i>
 
+                                Tìm kiếm
+
+                            </button>
+
+                        </div>
 
                     </form>
-
 
                 </div>
 
 
-                <!-- =========================
-                     SẮP XẾP
-                ========================== -->
+
+                <!-- SORT -->
 
                 <div class="col-md-3">
 
-
                     <form method="GET">
-
-
-                        <!-- Giữ keyword -->
 
                         <input
                             type="hidden"
                             name="keyword"
-                            value="<?= htmlspecialchars($keyword) ?>">
+                            value="<?= htmlspecialchars($keyword) ?>"
+                        >
 
-
-                        <!-- Giữ limit -->
 
                         <input
                             type="hidden"
                             name="limit"
-                            value="<?= $limit ?>">
+                            value="<?= (int)$limit ?>"
+                        >
 
 
                         <select
                             name="sort"
                             class="form-select"
-                            onchange="this.form.submit()">
-
+                            onchange="this.form.submit()"
+                        >
 
                             <option
                                 value="name_asc"
-                                <?= $sort == "name_asc" ? "selected" : "" ?>>
+                                <?= $sort === "name_asc" ? "selected" : "" ?>
+                            >
 
-                                Tên A-Z
+                                Tên A - Z
 
                             </option>
 
 
                             <option
                                 value="name_desc"
-                                <?= $sort == "name_desc" ? "selected" : "" ?>>
+                                <?= $sort === "name_desc" ? "selected" : "" ?>
+                            >
 
-                                Tên Z-A
+                                Tên Z - A
 
                             </option>
 
 
                             <option
                                 value="price_asc"
-                                <?= $sort == "price_asc" ? "selected" : "" ?>>
+                                <?= $sort === "price_asc" ? "selected" : "" ?>
+                            >
 
                                 Giá thấp → cao
 
@@ -321,175 +207,187 @@ ob_start();
 
                             <option
                                 value="price_desc"
-                                <?= $sort == "price_desc" ? "selected" : "" ?>>
+                                <?= $sort === "price_desc" ? "selected" : "" ?>
+                            >
 
                                 Giá cao → thấp
 
                             </option>
 
-
                         </select>
 
-
                     </form>
-
 
                 </div>
 
 
-                <!-- =========================
-                     LÀM MỚI
-                ========================== -->
 
-                <div class="col-md-2">
+                <!-- REFRESH -->
 
+                <div class="col-md-3">
 
                     <a
-                        href="index.php"
-                        class="btn btn-secondary">
-
+                        href="/MiniShop_quachvanduy/admin/product"
+                        class="btn btn-secondary"
+                    >
 
                         <i class="fa fa-refresh"></i>
 
                         Làm mới
 
-
                     </a>
 
-
                 </div>
-
 
             </div>
 
+        </div>
 
-            <!-- ==================================================
-                 THÔNG BÁO
-            ================================================== -->
-
-            <?php if (!empty($message)): ?>
+    </div>
 
 
-                <div class="alert alert-danger">
 
-                    <?= htmlspecialchars($message) ?>
+    <!-- ==========================================================
+         MESSAGE
+    =========================================================== -->
 
-                </div>
+    <?php if (!empty($message)): ?>
 
+        <div class="alert alert-danger">
 
-            <?php endif; ?>
+            <i class="fa fa-exclamation-circle"></i>
 
+            <?= htmlspecialchars($message) ?>
 
-            <!-- ==================================================
-                 THÔNG BÁO TÌM KIẾM
-            ================================================== -->
+        </div>
 
-            <?php if ($keyword != "" && $totalRecords == 0): ?>
-
-
-                <div class="alert alert-warning">
-
-                    <i class="fa fa-info-circle"></i>
-
-                    Không tìm thấy sản phẩm
-                    với từ khóa:
-
-                    <strong>
-                        <?= htmlspecialchars($keyword) ?>
-                    </strong>
-
-                </div>
+    <?php endif; ?>
 
 
-            <?php endif; ?>
+
+    <!-- ==========================================================
+         SEARCH RESULT
+    =========================================================== -->
+
+    <?php if ($keyword !== "" && $totalRecords === 0): ?>
+
+        <div class="alert alert-warning">
+
+            <i class="fa fa-info-circle"></i>
+
+            Không tìm thấy sản phẩm với từ khóa:
+
+            <strong>
+                <?= htmlspecialchars($keyword) ?>
+            </strong>
+
+        </div>
+
+    <?php endif; ?>
 
 
-            <!-- ==================================================
-                 TABLE
-            ================================================== -->
+
+    <!-- ==========================================================
+         PRODUCT TABLE
+    =========================================================== -->
+
+    <div class="card shadow-sm">
+
+
+        <!-- HEADER -->
+
+        <div class="card-header bg-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <strong>
+                    Danh sách sản phẩm
+                </strong>
+
+
+                <?php if ($totalRecords > 0): ?>
+
+                    <span class="text-muted small">
+
+                        Tổng:
+                        <strong>
+                            <?= (int)$totalRecords ?>
+                        </strong>
+                        sản phẩm
+
+                    </span>
+
+                <?php endif; ?>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- BODY -->
+
+        <div class="card-body p-0">
 
             <div class="table-responsive">
 
-
                 <table
-                    class="table table-bordered table-hover align-middle">
+                    class="table table-bordered table-hover align-middle mb-0"
+                >
 
-
-                    <!-- ==================================================
-                         THEAD
-                    ================================================== -->
-
-                    <thead
-                        class="table-dark text-center">
-
+                    <thead class="table-light text-center">
 
                         <tr>
-
 
                             <th width="60">
                                 STT
                             </th>
 
-
-                            <th width="90">
+                            <th width="100">
                                 Hình ảnh
                             </th>
-
 
                             <th>
                                 Tên sản phẩm
                             </th>
 
-
                             <th>
                                 Danh mục
                             </th>
-
 
                             <th>
                                 Thương hiệu
                             </th>
 
-
-                            <th width="120">
+                            <th width="130">
                                 Giá
                             </th>
 
-
-                            <th width="120">
-                                Giảm giá
+                            <th width="130">
+                                Giá KM
                             </th>
 
-
-                            <th width="70">
+                            <th width="80">
                                 SL
                             </th>
-
 
                             <th width="120">
                                 Trạng thái
                             </th>
 
-
                             <th width="170">
                                 Ngày tạo
                             </th>
 
-
-                            <th width="170">
-                                Chức năng
+                            <th width="150">
+                                Thao tác
                             </th>
 
-
                         </tr>
-
 
                     </thead>
 
 
-                    <!-- ==================================================
-                         TBODY
-                    ================================================== -->
 
                     <tbody>
 
@@ -499,24 +397,12 @@ ob_start();
 
                             <?php
 
-                            /*
-                             * STT phải tính theo page
-                             *
-                             * Page 1:
-                             * 1 -> 10
-                             *
-                             * Page 2:
-                             * 11 -> 20
-                             *
-                             */
-
                             $stt = $offset + 1;
 
                             ?>
 
 
                             <?php foreach ($list as $item): ?>
-
 
                                 <tr>
 
@@ -530,50 +416,67 @@ ob_start();
                                     </td>
 
 
-                                    <!-- HÌNH -->
+
+                                    <!-- IMAGE -->
 
                                     <td class="text-center">
 
-
                                         <?php if (!empty($item->image)): ?>
 
-
                                             <img
-                                                src="../../../uploads/products/<?= htmlspecialchars($item->image) ?>"
+                                                src="/MiniShop_quachvanduy/uploads/products/<?= htmlspecialchars($item->image) ?>"
+                                                alt="<?= htmlspecialchars($item->proname ?? "") ?>"
                                                 width="60"
                                                 height="60"
                                                 class="img-thumbnail"
-                                                style="object-fit: cover;">
-
+                                                style="object-fit: cover;"
+                                            >
 
                                         <?php else: ?>
 
+                                            <span class="text-muted small">
 
-                                            <span class="text-muted">
-
-                                                No Image
+                                                Không có ảnh
 
                                             </span>
 
-
                                         <?php endif; ?>
-
 
                                     </td>
 
 
-                                    <!-- TÊN -->
+
+                                    <!-- NAME -->
 
                                     <td>
 
-                                        <?= htmlspecialchars(
-                                            $item->proname ?? ""
-                                        ) ?>
+                                        <strong>
+
+                                            <?= htmlspecialchars(
+                                                $item->proname ?? ""
+                                            ) ?>
+
+                                        </strong>
+
+                                        <?php if (!empty($item->slug)): ?>
+
+                                            <br>
+
+                                            <small class="text-muted">
+
+                                                <?= htmlspecialchars(
+                                                    $item->slug
+                                                ) ?>
+
+                                            </small>
+
+                                        <?php endif; ?>
 
                                     </td>
 
 
-                                    <!-- DANH MỤC -->
+
+                                    <!-- CATEGORY -->
 
                                     <td>
 
@@ -584,7 +487,8 @@ ob_start();
                                     </td>
 
 
-                                    <!-- THƯƠNG HIỆU -->
+
+                                    <!-- BRAND -->
 
                                     <td>
 
@@ -595,146 +499,202 @@ ob_start();
                                     </td>
 
 
-                                    <!-- GIÁ -->
+
+                                    <!-- PRICE -->
 
                                     <td class="text-end">
 
-                                        <?= number_format(
-                                            $item->price ?? 0,
-                                            0,
-                                            ",",
-                                            "."
+                                        <strong>
+
+                                            <?= number_format(
+                                                (float)($item->price ?? 0),
+                                                0,
+                                                ",",
+                                                "."
+                                            ) ?>
+
+                                            đ
+
+                                        </strong>
+
+                                    </td>
+
+
+
+                                    <!-- DISCOUNT PRICE -->
+
+                                    <td class="text-end">
+
+                                        <?php if (
+                                            (float)($item->discountPrice ?? 0) > 0
+                                        ): ?>
+
+                                            <span
+                                                class="text-danger fw-bold"
+                                            >
+
+                                                <?= number_format(
+                                                    (float)$item->discountPrice,
+                                                    0,
+                                                    ",",
+                                                    "."
+                                                ) ?>
+
+                                                đ
+
+                                            </span>
+
+                                        <?php else: ?>
+
+                                            <span class="text-muted">
+
+                                                -
+
+                                            </span>
+
+                                        <?php endif; ?>
+
+                                    </td>
+
+
+
+                                    <!-- QUANTITY -->
+
+                                    <td class="text-center">
+
+                                        <?= (int)(
+                                            $item->quantity ?? 0
                                         ) ?>
 
                                     </td>
 
 
-                                    <!-- GIẢM GIÁ -->
 
-                                    <td class="text-end">
-
-                                        <?= number_format(
-                                            $item->discountPrice ?? 0,
-                                            0,
-                                            ",",
-                                            "."
-                                        ) ?>
-
-                                    </td>
-
-
-                                    <!-- SỐ LƯỢNG -->
+                                    <!-- STATUS -->
 
                                     <td class="text-center">
 
-                                        <?= $item->quantity ?? 0 ?>
+                                        <?php if (
+                                            (int)($item->status ?? 0) === 1
+                                        ): ?>
 
-                                    </td>
-
-
-                                    <!-- TRẠNG THÁI -->
-
-                                    <td class="text-center">
-
-
-                                        <?php if (($item->status ?? 0) == 1): ?>
-
-
-                                            <span class="badge bg-success">
+                                            <span
+                                                class="badge bg-success"
+                                            >
 
                                                 Hiển thị
 
                                             </span>
 
-
                                         <?php else: ?>
 
-
-                                            <span class="badge bg-danger">
+                                            <span
+                                                class="badge bg-secondary"
+                                            >
 
                                                 Ẩn
 
                                             </span>
 
-
                                         <?php endif; ?>
 
-
                                     </td>
 
 
-                                    <!-- NGÀY TẠO -->
+
+                                    <!-- CREATED -->
 
                                     <td class="text-center">
 
-                                        <?= htmlspecialchars(
-                                            $item->createdAt ?? ""
-                                        ) ?>
+                                        <small>
+
+                                            <?= htmlspecialchars(
+                                                $item->createdAt ?? ""
+                                            ) ?>
+
+                                        </small>
 
                                     </td>
 
 
-                                    <!-- CHỨC NĂNG -->
+
+                                    <!-- ACTION -->
 
                                     <td class="text-center">
 
-
-                                        <!-- XEM -->
-
-                                        <a
-                                            href="detail.php?id=<?= $item->id ?>"
-                                            class="btn btn-info btn-sm">
-
-                                            <i class="fa fa-eye"></i>
-
-                                        </a>
+                                        <div
+                                            class="d-flex justify-content-center gap-1"
+                                        >
 
 
-                                        <!-- SỬA -->
+                                            <!-- DETAIL -->
 
-                                        <a
-                                            href="edit.php?id=<?= $item->id ?>"
-                                            class="btn btn-warning btn-sm">
+                                            <a
+                                                href="/MiniShop_quachvanduy/admin/product/detail?id=<?= (int)$item->id ?>"
+                                                class="btn btn-info btn-sm"
+                                                title="Xem chi tiết"
+                                            >
 
-                                            <i class="fa fa-edit"></i>
+                                                <i class="fa fa-eye"></i>
 
-                                        </a>
-
-
-                                        <!-- XÓA -->
-
-                                        <form
-                                            method="POST"
-                                            style="display:inline-block"
-                                            onsubmit="return confirm('Bạn có chắc muốn xóa?');">
+                                            </a>
 
 
-                                            <input
-                                                type="hidden"
-                                                name="id"
-                                                value="<?= $item->id ?>">
+
+                                            <!-- EDIT -->
+
+                                            <a
+                                                href="/MiniShop_quachvanduy/admin/product/edit?id=<?= (int)$item->id ?>"
+                                                class="btn btn-warning btn-sm"
+                                                title="Sửa"
+                                            >
+
+                                                <i class="fa fa-edit"></i>
+
+                                            </a>
 
 
-                                            <button
-                                                type="submit"
-                                                name="btnDelete"
-                                                class="btn btn-danger btn-sm">
+
+                                            <!-- DELETE -->
+
+                                            <form
+                                                method="POST"
+                                                action="/MiniShop_quachvanduy/admin/product/delete"
+                                                class="d-inline"
+                                                onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?');"
+                                            >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="id"
+                                                    value="<?= (int)$item->id ?>"
+                                                >
 
 
-                                                <i class="fa fa-trash"></i>
+                                                <input
+                                                    type="hidden"
+                                                    name="csrf_token"
+                                                    value="<?= htmlspecialchars($csrfToken) ?>"
+                                                >
 
 
-                                            </button>
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-danger btn-sm"
+                                                    title="Xóa"
+                                                >
 
+                                                    <i class="fa fa-trash"></i>
 
-                                        </form>
+                                                </button>
 
+                                            </form>
+
+                                        </div>
 
                                     </td>
-
 
                                 </tr>
-
 
                             <?php endforeach; ?>
 
@@ -744,29 +704,27 @@ ob_start();
 
                             <tr>
 
-
                                 <td
                                     colspan="11"
-                                    class="text-center text-danger py-4">
+                                    class="text-center text-muted py-5"
+                                >
+
+                                    <i
+                                        class="fa fa-inbox fa-2x mb-2 d-block"
+                                    ></i>
 
 
-                                    <?php if ($keyword != ""): ?>
-
+                                    <?php if ($keyword !== ""): ?>
 
                                         Không tìm thấy sản phẩm.
 
-
                                     <?php else: ?>
 
-
-                                        Không có dữ liệu.
-
+                                        Chưa có sản phẩm nào.
 
                                     <?php endif; ?>
 
-
                                 </td>
-
 
                             </tr>
 
@@ -776,149 +734,142 @@ ob_start();
 
                     </tbody>
 
-
                 </table>
-
 
             </div>
 
+        </div>
 
-            <!-- ==================================================
-                 PHÂN TRANG + LIMIT
-            ================================================== -->
 
-            <?php if ($totalRecords > 0): ?>
 
+        <!-- ======================================================
+             FOOTER
+        ======================================================= -->
+
+        <?php if ($totalRecords > 0): ?>
+
+            <div class="card-footer bg-white">
 
                 <div
-                    class="d-flex justify-content-between align-items-center mt-3">
+                    class="d-flex justify-content-between align-items-center flex-wrap gap-2"
+                >
 
 
-                    <!-- =========================
-                         CHỌN SỐ SP / TRANG
-                    ========================== -->
+                    <!-- LIMIT -->
 
-                    <div
-                        class="d-flex align-items-center">
+                    <div class="d-flex align-items-center">
 
-
-                        <label class="me-2 mb-0">
+                        <span class="me-2">
 
                             Hiển thị:
 
-                        </label>
+                        </span>
 
 
                         <form method="GET">
 
-
-                            <!-- Giữ keyword -->
-
                             <input
                                 type="hidden"
                                 name="keyword"
-                                value="<?= htmlspecialchars($keyword) ?>">
+                                value="<?= htmlspecialchars($keyword) ?>"
+                            >
 
-
-                            <!-- Giữ sort -->
 
                             <input
                                 type="hidden"
                                 name="sort"
-                                value="<?= htmlspecialchars($sort) ?>">
+                                value="<?= htmlspecialchars($sort) ?>"
+                            >
 
 
                             <select
                                 name="limit"
                                 class="form-select"
+                                style="width: 80px;"
                                 onchange="this.form.submit()"
-                                style="width:90px;">
-
+                            >
 
                                 <option
                                     value="10"
-                                    <?= $limit == 10 ? "selected" : "" ?>>
-
+                                    <?= $limit === 10 ? "selected" : "" ?>
+                                >
                                     10
-
                                 </option>
 
 
                                 <option
                                     value="20"
-                                    <?= $limit == 20 ? "selected" : "" ?>>
-
+                                    <?= $limit === 20 ? "selected" : "" ?>
+                                >
                                     20
-
                                 </option>
 
 
                                 <option
                                     value="30"
-                                    <?= $limit == 30 ? "selected" : "" ?>>
-
+                                    <?= $limit === 30 ? "selected" : "" ?>
+                                >
                                     30
-
                                 </option>
 
-
                             </select>
-
 
                         </form>
 
 
+                        <span class="ms-2">
+
+                            sản phẩm / trang
+
+                        </span>
+
                     </div>
 
 
-                    <!-- =========================
-                         PHÂN TRANG
-                    ========================== -->
+
+                    <!-- PAGINATION -->
 
                     <?php if ($totalPages > 1): ?>
 
-
                         <nav>
-
 
                             <ul class="pagination mb-0">
 
 
-                                <!-- TRANG TRƯỚC -->
+                                <!-- PREVIOUS -->
 
-                                <li
-                                    class="page-item <?= $page <= 1 ? "disabled" : "" ?>">
+                                <?php if ($page > 1): ?>
 
-
-                                    <?php if ($page > 1): ?>
-
+                                    <li class="page-item">
 
                                         <a
                                             class="page-link"
-                                            href="?keyword=<?= urlencode($keyword) ?>&limit=<?= $limit ?>&sort=<?= urlencode($sort) ?>&page=<?= $page - 1 ?>">
+                                            href="?keyword=<?= urlencode($keyword) ?>&limit=<?= (int)$limit ?>&sort=<?= urlencode($sort) ?>&page=<?= $page - 1 ?>"
+                                        >
 
-                                            ← Trước
+                                            ←
 
                                         </a>
 
+                                    </li>
 
-                                    <?php else: ?>
+                                <?php else: ?>
 
+                                    <li class="page-item disabled">
 
                                         <span class="page-link">
 
-                                            ← Trước
+                                            ←
 
                                         </span>
 
+                                    </li>
 
-                                    <?php endif; ?>
-
-
-                                </li>
+                                <?php endif; ?>
 
 
-                                <!-- CÁC TRANG -->
+
+                                <!-- PAGE NUMBERS -->
 
                                 <?php for (
                                     $i = 1;
@@ -926,88 +877,82 @@ ob_start();
                                     $i++
                                 ): ?>
 
-
                                     <li
-                                        class="page-item <?= $i == $page ? "active" : "" ?>">
-
+                                        class="page-item
+                                        <?= $i === $page ? "active" : "" ?>"
+                                    >
 
                                         <a
                                             class="page-link"
-                                            href="?keyword=<?= urlencode($keyword) ?>&limit=<?= $limit ?>&sort=<?= urlencode($sort) ?>&page=<?= $i ?>">
+                                            href="?keyword=<?= urlencode($keyword) ?>&limit=<?= (int)$limit ?>&sort=<?= urlencode($sort) ?>&page=<?= $i ?>"
+                                        >
 
                                             <?= $i ?>
 
                                         </a>
 
-
                                     </li>
-
 
                                 <?php endfor; ?>
 
 
-                                <!-- TRANG SAU -->
 
-                                <li
-                                    class="page-item <?= $page >= $totalPages ? "disabled" : "" ?>">
+                                <!-- NEXT -->
 
+                                <?php if ($page < $totalPages): ?>
 
-                                    <?php if ($page < $totalPages): ?>
-
+                                    <li class="page-item">
 
                                         <a
                                             class="page-link"
-                                            href="?keyword=<?= urlencode($keyword) ?>&limit=<?= $limit ?>&sort=<?= urlencode($sort) ?>&page=<?= $page + 1 ?>">
+                                            href="?keyword=<?= urlencode($keyword) ?>&limit=<?= (int)$limit ?>&sort=<?= urlencode($sort) ?>&page=<?= $page + 1 ?>"
+                                        >
 
-                                            Sau →
+                                            →
 
                                         </a>
 
+                                    </li>
 
-                                    <?php else: ?>
+                                <?php else: ?>
 
+                                    <li class="page-item disabled">
 
                                         <span class="page-link">
 
-                                            Sau →
+                                            →
 
                                         </span>
 
+                                    </li>
 
-                                    <?php endif; ?>
-
-
-                                </li>
+                                <?php endif; ?>
 
 
                             </ul>
 
-
                         </nav>
-
 
                     <?php endif; ?>
 
 
                 </div>
 
+            </div>
 
-            <?php endif; ?>
-
-
-        </div>
+        <?php endif; ?>
 
 
     </div>
 
-
 </div>
+
 
 
 <?php
 
 $content = ob_get_clean();
 
-include  __DIR__. "/../layouts/master.php";
+require __DIR__ . "/../layouts/master.php";
 
 ?>

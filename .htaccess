@@ -1,0 +1,106 @@
+RewriteEngine On
+
+RewriteBase /MiniShop_quachvanduy/
+
+
+# ==================================================
+# ADMIN AUTH
+# ==================================================
+
+RewriteRule ^admin/login/?$ index.php?area=admin&controller=auth&action=login [QSA,L]
+
+RewriteRule ^admin/logout/?$ index.php?area=admin&controller=auth&action=logout [QSA,L]
+
+
+# ==================================================
+# ADMIN DASHBOARD
+# ==================================================
+
+RewriteRule ^admin/dashboard/?$ index.php?area=admin&controller=dashboard&action=index [QSA,L]
+
+
+# ==================================================
+# PRODUCT
+# ==================================================
+
+RewriteRule ^admin/product/?$ index.php?area=admin&controller=product&action=index [QSA,L]
+
+RewriteRule ^admin/product/create/?$ index.php?area=admin&controller=product&action=create [QSA,L]
+
+RewriteRule ^admin/product/edit/([0-9]+)/?$ index.php?area=admin&controller=product&action=edit&id=$1 [QSA,L]
+
+RewriteRule ^admin/product/detail/([0-9]+)/?$ index.php?area=admin&controller=product&action=detail&id=$1 [QSA,L]
+
+RewriteRule ^admin/product/delete/([0-9]+)/?$ index.php?area=admin&controller=product&action=delete&id=$1 [QSA,L]
+
+
+# ==================================================
+# CATEGORY
+# ==================================================
+
+RewriteRule ^admin/category/?$ index.php?area=admin&controller=category&action=index [QSA,L]
+
+RewriteRule ^admin/category/create/?$ index.php?area=admin&controller=category&action=create [QSA,L]
+
+RewriteRule ^admin/category/edit/([0-9]+)/?$ index.php?area=admin&controller=category&action=edit&id=$1 [QSA,L]
+
+RewriteRule ^admin/category/delete/([0-9]+)/?$ index.php?area=admin&controller=category&action=delete&id=$1 [QSA,L]
+
+
+# ==================================================
+# BRAND
+# ==================================================
+
+RewriteRule ^admin/brand/?$ index.php?area=admin&controller=brand&action=index [QSA,L]
+
+RewriteRule ^admin/brand/create/?$ index.php?area=admin&controller=brand&action=create [QSA,L]
+
+RewriteRule ^admin/brand/edit/([0-9]+)/?$ index.php?area=admin&controller=brand&action=edit&id=$1 [QSA,L]
+
+RewriteRule ^admin/brand/delete/([0-9]+)/?$ index.php?area=admin&controller=brand&action=delete&id=$1 [QSA,L]
+
+
+# ==================================================
+# CUSTOMER
+# ==================================================
+
+RewriteRule ^admin/customer/?$ index.php?area=admin&controller=customer&action=index [QSA,L]
+
+
+# ==================================================
+# USER
+# ==================================================
+
+RewriteRule ^admin/user/?$ index.php?area=admin&controller=user&action=index [QSA,L]
+
+
+# ==================================================
+# ORDER
+# ==================================================
+
+RewriteRule ^admin/order/?$ index.php?area=admin&controller=order&action=index [QSA,L]
+
+RewriteRule ^admin/order/detail/([0-9]+)/?$ index.php?area=admin&controller=order&action=detail&id=$1 [QSA,L]
+
+
+# ==================================================
+# CLIENT
+# ==================================================
+
+RewriteRule ^product/?$ index.php?area=client&controller=product&action=index [QSA,L]
+
+
+# ==================================================
+# FILE / FOLDER THẬT
+# ==================================================
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+
+# ==================================================
+# DEFAULT
+# ==================================================
+
+RewriteRule ^ index.php [QSA,L]

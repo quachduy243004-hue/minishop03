@@ -1,15 +1,17 @@
 <?php
 
-require_once "../../../dao/ProductDAO.php";
-require_once "../../../dao/CategoryDAO.php";
-require_once "../../../dao/BrandDAO.php";
-require_once "../../../models/Product.php";
+require_once "../../../autoload.php";
+
+use DAO\ProductDAO;
+use DAO\CategoryDAO;
+use DAO\BrandDAO;
+use Models\Product;
 
 $pageTitle = "Sửa sản phẩm";
 
 $productDAO = new ProductDAO();
 $categoryDAO = new CategoryDAO();
-$brandDAO = new BrandDAO();
+$brandDAO = new BrandDAO;
 
 
 // =====================================================
@@ -25,7 +27,7 @@ if ($id <= 0) {
 
 
 // =====================================================
-// LẤY DỮ LIỆU DANH MỤC + THƯƠNG HIỆU
+// LẤY DANH MỤC + THƯƠNG HIỆU
 // =====================================================
 
 $categories = $categoryDAO->getAll();
@@ -50,15 +52,17 @@ if (!$product) {
 
 $categoryId = $product->categoryId ?? "";
 $brandId = $product->brandId ?? "";
+
 $proname = $product->proname ?? "";
 $slug = $product->slug ?? "";
+
 $price = $product->price ?? 0;
 $discountPrice = $product->discountPrice ?? 0;
 $quantity = $product->quantity ?? 0;
+
 $description = $product->description ?? "";
 $status = $product->status ?? 1;
 
-// Ảnh cũ
 $oldImage = $product->image ?? "";
 
 $errors = [];
@@ -68,40 +72,40 @@ $errors = [];
 // XỬ LÝ SUBMIT
 // =====================================================
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $categoryId = $_POST["categoryId"] ?? "";
-    $brandId = $_POST["brandId"] ?? "";
+    $categoryId = intval($_POST["categoryId"] ?? 0);
+    $brandId = intval($_POST["brandId"] ?? 0);
 
     $proname = trim($_POST["proname"] ?? "");
     $slug = trim($_POST["slug"] ?? "");
 
-    $price = $_POST["price"] ?? 0;
-    $discountPrice = $_POST["discountPrice"] ?? 0;
-    $quantity = $_POST["quantity"] ?? 0;
+    $price = floatval($_POST["price"] ?? 0);
+    $discountPrice = floatval($_POST["discountPrice"] ?? 0);
+    $quantity = intval($_POST["quantity"] ?? 0);
 
     $description = trim($_POST["description"] ?? "");
 
-    $status = $_POST["status"] ?? 1;
+    $status = intval($_POST["status"] ?? 1);
 
 
     // =================================================
     // VALIDATION
     // =================================================
 
-    if ($categoryId == "") {
+    if ($categoryId <= 0) {
         $errors[] = "Chưa chọn danh mục.";
     }
 
-    if ($brandId == "") {
+    if ($brandId <= 0) {
         $errors[] = "Chưa chọn thương hiệu.";
     }
 
-    if ($proname == "") {
+    if ($proname === "") {
         $errors[] = "Tên sản phẩm không được để trống.";
     }
 
-    if ($slug == "") {
+    if ($slug === "") {
         $errors[] = "Slug không được để trống.";
     }
 
@@ -113,8 +117,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $errors[] = "Giảm giá không hợp lệ.";
     }
 
+    if ($discountPrice > $price) {
+        $errors[] = "Giá giảm không được lớn hơn giá sản phẩm.";
+    }
+
     if ($quantity < 0) {
         $errors[] = "Số lượng không hợp lệ.";
+    }
+
+
+    // =================================================
+    // KIỂM TRA SLUG
+    // =================================================
+
+    if (empty($errors)) {
+
+        if ($productDAO->existsBySlugExceptId($slug, $id)) {
+
+            $errors[] = "Slug sản phẩm đã tồn tại.";
+        }
     }
 
 
@@ -127,12 +148,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $fileName = $_FILES["image"]["name"] ?? "";
     $tmpName = $_FILES["image"]["tmp_name"] ?? "";
     $fileSize = $_FILES["image"]["size"] ?? 0;
-    $error = $_FILES["image"]["error"] ?? UPLOAD_ERR_NO_FILE;
+    $fileError = $_FILES["image"]["error"] ?? UPLOAD_ERR_NO_FILE;
 
 
-    if ($fileName != "") {
+    if ($fileName !== "") {
 
-        if ($error != UPLOAD_ERR_OK) {
+        if ($fileError !== UPLOAD_ERR_OK) {
 
             $errors[] = "Upload ảnh thất bại.";
 
@@ -151,7 +172,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             );
 
 
-            if (!in_array($ext, $allow)) {
+            if (!in_array($ext, $allow, true)) {
 
                 $errors[] =
                     "Chỉ cho phép JPG, JPEG, PNG, GIF, WEBP.";
@@ -163,7 +184,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $errors[] =
                     "Ảnh tối đa 200KB.";
             }
-
         }
     }
 
@@ -174,28 +194,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if (empty($errors)) {
 
-
-        // ---------------------------------------------
-        // Nếu chọn ảnh mới
-        // ---------------------------------------------
-
-        if ($fileName != "") {
-
-            $ext = strtolower(
-                pathinfo($fileName, PATHINFO_EXTENSION)
-            );
+        $uploadDir =
+            __DIR__ . "/../../../uploads/products/";
 
 
-            // Tạo tên ảnh mới
-            $image = time() . "_" . $slug . "." . $ext;
+        // =============================================
+        // NẾU CÓ ẢNH MỚI
+        // =============================================
 
+        if ($fileName !== "") {
 
-            // Đường dẫn thư mục upload
-            $uploadDir =
-                __DIR__ . "/../../../uploads/products/";
-
-
-            // Tạo thư mục nếu chưa tồn tại
             if (!is_dir($uploadDir)) {
 
                 mkdir(
@@ -206,12 +214,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
 
 
-            // Đường dẫn file mới
+            $ext = strtolower(
+                pathinfo($fileName, PATHINFO_EXTENSION)
+            );
+
+
+            // Làm slug an toàn cho tên file
+            $safeSlug = preg_replace(
+                "/[^a-zA-Z0-9-_]/",
+                "-",
+                $slug
+            );
+
+
+            $image =
+                time()
+                . "_"
+                . $safeSlug
+                . "."
+                . $ext;
+
+
             $uploadPath =
                 $uploadDir . $image;
 
 
-            // Upload ảnh
+            // Upload
             if (!move_uploaded_file(
                 $tmpName,
                 $uploadPath
@@ -222,13 +250,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
 
 
-            // -----------------------------------------
-            // Xóa ảnh cũ
-            // -----------------------------------------
+            // =========================================
+            // XÓA ẢNH CŨ
+            // =========================================
 
             if (
                 empty($errors)
                 && !empty($oldImage)
+                && $oldImage !== $image
             ) {
 
                 $oldImagePath =
@@ -246,14 +275,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
 
-        // ---------------------------------------------
-        // Nếu không có lỗi -> UPDATE DATABASE
-        // ---------------------------------------------
+        // =============================================
+        // UPDATE DATABASE
+        // =============================================
 
         if (empty($errors)) {
 
             $product = new Product(
-
                 $categoryId,
                 $brandId,
                 $proname,
@@ -264,7 +292,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $image,
                 $description,
                 $status
-
             );
 
 
@@ -273,10 +300,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if ($productDAO->update($product)) {
 
-                header(
-                    "Location: index.php"
-                );
-
+                header("Location: index.php");
                 exit;
 
             } else {
@@ -293,7 +317,6 @@ ob_start();
 
 ?>
 
-
 <div class="container-fluid">
 
     <div class="card shadow">
@@ -301,20 +324,12 @@ ob_start();
         <div class="card-header bg-white">
 
             <h4 class="mb-0">
-
                 Sửa sản phẩm
-
             </h4>
 
         </div>
 
-
         <div class="card-body">
-
-
-            <!-- ========================================= -->
-            <!-- HIỂN THỊ LỖI -->
-            <!-- ========================================= -->
 
             <?php if (!empty($errors)): ?>
 
@@ -325,9 +340,7 @@ ob_start();
                         <?php foreach ($errors as $error): ?>
 
                             <li>
-
                                 <?= htmlspecialchars($error) ?>
-
                             </li>
 
                         <?php endforeach; ?>
@@ -339,125 +352,88 @@ ob_start();
             <?php endif; ?>
 
 
-            <!-- ========================================= -->
-            <!-- FORM -->
-            <!-- ========================================= -->
-
             <form
                 method="POST"
                 enctype="multipart/form-data">
 
 
-                <!-- ===================================== -->
                 <!-- DANH MỤC -->
-                <!-- ===================================== -->
 
                 <div class="mb-3">
 
                     <label class="form-label">
-
                         Danh mục
-
                     </label>
-
 
                     <select
                         name="categoryId"
                         class="form-select">
 
-
                         <option value="">
-
                             -- Chọn danh mục --
-
                         </option>
-
 
                         <?php foreach ($categories as $c): ?>
 
                             <option
                                 value="<?= $c->id ?>"
-                                <?= ($categoryId == $c->id)
+                                <?= $categoryId == $c->id
                                     ? "selected"
                                     : "" ?>>
 
-                                <?= htmlspecialchars(
-                                    $c->name
-                                    ?? $c->catename
-                                    ?? ""
-                                ) ?>
+                                <?= htmlspecialchars($c->name) ?>
 
                             </option>
 
                         <?php endforeach; ?>
-
 
                     </select>
 
                 </div>
 
 
-                <!-- ===================================== -->
                 <!-- THƯƠNG HIỆU -->
-                <!-- ===================================== -->
 
                 <div class="mb-3">
 
                     <label class="form-label">
-
                         Thương hiệu
-
                     </label>
-
 
                     <select
                         name="brandId"
                         class="form-select">
 
-
                         <option value="">
-
                             -- Chọn thương hiệu --
-
                         </option>
-
 
                         <?php foreach ($brands as $b): ?>
 
                             <option
                                 value="<?= $b->id ?>"
-                                <?= ($brandId == $b->id)
+                                <?= $brandId == $b->id
                                     ? "selected"
                                     : "" ?>>
 
-                                <?= htmlspecialchars(
-                                    $b->brandname
-                                    ?? $b->name
-                                    ?? ""
-                                ) ?>
+                                <?= htmlspecialchars($b->brandname) ?>
 
                             </option>
 
                         <?php endforeach; ?>
-
 
                     </select>
 
                 </div>
 
 
-                <!-- ===================================== -->
-                <!-- TÊN SẢN PHẨM -->
-                <!-- ===================================== -->
+                <!-- TÊN -->
 
                 <div class="mb-3">
 
                     <label class="form-label">
-
                         Tên sản phẩm
-
                     </label>
-
 
                     <input
                         type="text"
@@ -468,18 +444,13 @@ ob_start();
                 </div>
 
 
-                <!-- ===================================== -->
                 <!-- SLUG -->
-                <!-- ===================================== -->
 
                 <div class="mb-3">
 
                     <label class="form-label">
-
                         Slug
-
                     </label>
-
 
                     <input
                         type="text"
@@ -490,90 +461,71 @@ ob_start();
                 </div>
 
 
-                <!-- ===================================== -->
                 <!-- GIÁ -->
-                <!-- ===================================== -->
 
                 <div class="mb-3">
 
                     <label class="form-label">
-
                         Giá
-
                     </label>
-
 
                     <input
                         type="number"
                         name="price"
                         class="form-control"
+                        min="0"
                         value="<?= htmlspecialchars($price) ?>">
 
                 </div>
 
 
-                <!-- ===================================== -->
                 <!-- GIẢM GIÁ -->
-                <!-- ===================================== -->
 
                 <div class="mb-3">
 
                     <label class="form-label">
-
                         Giảm giá
-
                     </label>
-
 
                     <input
                         type="number"
                         name="discountPrice"
                         class="form-control"
+                        min="0"
                         value="<?= htmlspecialchars($discountPrice) ?>">
 
                 </div>
 
 
-                <!-- ===================================== -->
                 <!-- SỐ LƯỢNG -->
-                <!-- ===================================== -->
 
                 <div class="mb-3">
 
                     <label class="form-label">
-
                         Số lượng
-
                     </label>
-
 
                     <input
                         type="number"
                         name="quantity"
                         class="form-control"
+                        min="0"
                         value="<?= htmlspecialchars($quantity) ?>">
 
                 </div>
 
 
-                <!-- ===================================== -->
-                <!-- ẢNH HIỆN TẠI -->
-                <!-- ===================================== -->
+                <!-- ẢNH CŨ -->
 
                 <div class="mb-3">
 
                     <label class="form-label">
-
                         Hình ảnh hiện tại
-
                     </label>
 
-
-                    <div class="mb-2">
-
+                    <div>
 
                         <?php if (!empty($oldImage)): ?>
-
 
                             <?php
                             $imagePath =
@@ -581,18 +533,19 @@ ob_start();
                                 . $oldImage;
                             ?>
 
-
                             <img
                                 src="<?= htmlspecialchars($imagePath) ?>"
                                 alt="Hình ảnh sản phẩm"
                                 class="img-thumbnail"
                                 style="
-                                    width: 180px;
-                                    height: 180px;
-                                    object-fit: cover;
+                                    width:180px;
+                                    height:180px;
+                                    object-fit:cover;
                                 "
-                                onerror="this.style.display='none'; document.getElementById('imageError').style.display='block';">
-
+                                onerror="
+                                    this.style.display='none';
+                                    document.getElementById('imageError').style.display='block';
+                                ">
 
                             <div
                                 id="imageError"
@@ -607,37 +560,26 @@ ob_start();
 
                             </div>
 
-
                         <?php else: ?>
 
-
                             <div class="text-muted">
-
                                 Chưa có hình ảnh
-
                             </div>
 
-
                         <?php endif; ?>
-
 
                     </div>
 
                 </div>
 
 
-                <!-- ===================================== -->
-                <!-- CHỌN ẢNH MỚI -->
-                <!-- ===================================== -->
+                <!-- ẢNH MỚI -->
 
                 <div class="mb-3">
 
                     <label class="form-label">
-
                         Chọn hình ảnh mới
-
                     </label>
-
 
                     <input
                         type="file"
@@ -646,31 +588,24 @@ ob_start();
                         class="form-control"
                         accept=".jpg,.jpeg,.png,.gif,.webp">
 
-
                     <small class="text-muted">
 
-                        Nếu không chọn ảnh mới,
-                        hình ảnh cũ sẽ được giữ nguyên.
+                        Không chọn ảnh mới thì ảnh cũ
+                        sẽ được giữ nguyên.
 
                     </small>
 
 
-                    <!-- Preview ảnh mới -->
-
                     <div
-                        class="mt-3"
                         id="previewContainer"
+                        class="mt-3"
                         style="display:none;">
 
                         <label class="form-label">
-
                             Ảnh mới
-
                         </label>
 
-
                         <br>
-
 
                         <img
                             id="previewImage"
@@ -678,9 +613,9 @@ ob_start();
                             alt="Ảnh mới"
                             class="img-thumbnail"
                             style="
-                                width: 180px;
-                                height: 180px;
-                                object-fit: cover;
+                                width:180px;
+                                height:180px;
+                                object-fit:cover;
                             ">
 
                     </div>
@@ -688,18 +623,13 @@ ob_start();
                 </div>
 
 
-                <!-- ===================================== -->
                 <!-- MÔ TẢ -->
-                <!-- ===================================== -->
 
                 <div class="mb-3">
 
                     <label class="form-label">
-
                         Mô tả
-
                     </label>
-
 
                     <textarea
                         name="description"
@@ -709,23 +639,17 @@ ob_start();
                 </div>
 
 
-                <!-- ===================================== -->
                 <!-- TRẠNG THÁI -->
-                <!-- ===================================== -->
 
                 <div class="mb-3">
 
                     <label class="form-label">
-
                         Trạng thái
-
                     </label>
-
 
                     <select
                         name="status"
                         class="form-select">
-
 
                         <option
                             value="1"
@@ -737,7 +661,6 @@ ob_start();
 
                         </option>
 
-
                         <option
                             value="0"
                             <?= $status == 0
@@ -748,26 +671,21 @@ ob_start();
 
                         </option>
 
-
                     </select>
 
                 </div>
 
 
-                <!-- ===================================== -->
                 <!-- BUTTON -->
-                <!-- ===================================== -->
 
                 <button
                     type="submit"
                     class="btn btn-success">
 
                     <i class="fa fa-save"></i>
-
                     Cập nhật
 
                 </button>
-
 
                 <a
                     href="index.php"
@@ -777,9 +695,7 @@ ob_start();
 
                 </a>
 
-
             </form>
-
 
         </div>
 
@@ -787,10 +703,6 @@ ob_start();
 
 </div>
 
-
-<!-- ============================================= -->
-<!-- JAVASCRIPT PREVIEW ẢNH -->
-<!-- ============================================= -->
 
 <script>
 
@@ -806,7 +718,6 @@ document
         const container =
             document.getElementById("previewContainer");
 
-
         if (file) {
 
             preview.src =
@@ -819,7 +730,6 @@ document
             preview.src = "";
 
             container.style.display = "none";
-
         }
 
     });

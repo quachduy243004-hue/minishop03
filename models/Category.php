@@ -1,14 +1,18 @@
 <?php
+
+namespace Models;
+
 class Category
 {
-    public int $id;
-    public string $name;
-    public string $slug;
-    public ?string $image;
-    public ?string $description;
-    public int $status;
-    public string $createdAt;
-    public string $updatedAt;
+    public int $id = 0;
+    public string $name = "";
+    public string $slug = "";
+    public ?string $image = null;
+    public ?string $description = null;
+    public int $status = 1;
+    public ?string $createdAt = null;
+    public ?string $updatedAt = null;
+
     public function __construct(
         string $name = "",
         string $slug = "",

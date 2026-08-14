@@ -6,38 +6,38 @@
 
     <div class="list-group mt-4">
 
-        <a href="/MiniShop_quachvanduy/views/admin/dashboard.php"
-            class="list-group-item list-group-item-action">
+        <a href="/MiniShop_quachvanduy/admin/dashboard"
+           class="list-group-item list-group-item-action">
             Dashboard
         </a>
 
-        <a href="/MiniShop_quachvanduy/views/admin/categories/index.php"
-            class="list-group-item list-group-item-action">
+        <a href="/MiniShop_quachvanduy/admin/category"
+           class="list-group-item list-group-item-action">
             Danh mục
         </a>
 
-        <a href="../brands/index.php"
-            class="list-group-item list-group-item-action">
+        <a href="/MiniShop_quachvanduy/admin/brand"
+           class="list-group-item list-group-item-action">
             Thương hiệu
         </a>
 
-        <a href="/MiniShop_quachvanduy/views/admin/product/index.php"
-            class="list-group-item list-group-item-action">
+        <a href="/MiniShop_quachvanduy/admin/product"
+           class="list-group-item list-group-item-action">
             Sản phẩm
         </a>
 
-        <a href="../customers/index.php"
-            class="list-group-item list-group-item-action">
+        <a href="/MiniShop_quachvanduy/admin/customer"
+           class="list-group-item list-group-item-action">
             Khách hàng
         </a>
 
-        <a href="../users/index.php"
-            class="list-group-item list-group-item-action">
+        <a href="/MiniShop_quachvanduy/admin/user"
+           class="list-group-item list-group-item-action">
             Người dùng
         </a>
 
-        <a href="../orders/index.php"
-            class="list-group-item list-group-item-action">
+        <a href="/MiniShop_quachvanduy/admin/order"
+           class="list-group-item list-group-item-action">
             Đơn hàng
         </a>
 

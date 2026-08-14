@@ -1,111 +1,6 @@
 <?php
-
-session_start();
-
-require_once __DIR__ . "/../../models/User.php";
-require_once __DIR__ . "/../../dao/UserDAO.php";
-require_once __DIR__ . "/../../middleware/GuestMiddleware.php";
-require_once __DIR__ . "/../../middleware/CsrfMiddleware.php";
-
-// Nếu đã đăng nhập thì không cho vào login
-GuestMiddleware::handle();
-
-// Tạo CSRF Token
-CsrfMiddleware::generateToken();
-
-$username = "";
-$password = "";
-$errors = [];
-
-// =========================
-// XỬ LÝ ĐĂNG NHẬP
-// =========================
-
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-
-    // Kiểm tra CSRF
-    CsrfMiddleware::verify();
-
-    $username = trim($_POST["username"] ?? "");
-    $password = $_POST["password"] ?? "";
-
-    // =========================
-    // VALIDATE
-    // =========================
-
-    if ($username === "") {
-        $errors["username"] = "Vui lòng nhập tên đăng nhập.";
-    }
-
-    if ($password === "") {
-        $errors["password"] = "Vui lòng nhập mật khẩu.";
-    }
-
-    // =========================
-    // TÌM USER
-    // =========================
-
-    if (empty($errors)) {
-
-        $userDAO = new UserDAO();
-
-        $user = $userDAO->findByUsername($username);
-
-        if (!$user) {
-
-            $errors["username"] = "Tên đăng nhập không tồn tại.";
-
-        } elseif (!password_verify($password, $user->password)) {
-
-            $errors["password"] = "Mật khẩu không chính xác.";
-
-        } elseif ((int)$user->status !== 1) {
-
-            $errors["username"] = "Tài khoản đã bị khóa.";
-
-        } else {
-
-            // =========================
-            // ĐĂNG NHẬP THÀNH CÔNG
-            // =========================
-
-            session_regenerate_id(true);
-
-            $_SESSION["user"] = $user;
-
-            // =========================
-            // REMEMBER ME
-            // =========================
-
-            if (isset($_POST["remember"])) {
-
-                setcookie(
-                    "remember_username",
-                    $user->username,
-                    time() + (30 * 24 * 60 * 60),
-                    "/"
-                );
-
-            } else {
-
-                setcookie(
-                    "remember_username",
-                    "",
-                    time() - 3600,
-                    "/"
-                );
-            }
-
-            // =========================
-            // CHUYỂN ĐẾN DASHBOARD
-            // =========================
-
-            header("Location: dashboard.php");
-            exit;
-        }
-    }
-}
-
+$username = $username ?? "";
+$errors = $errors ?? [];
 ?>
 
 <!DOCTYPE html>
@@ -179,7 +74,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </h4>
 
                 <form
-                    action="login.php"
+                    action="index.php?area=admin&controller=auth&action=login"
                     method="POST">
 
                     <!-- CSRF -->

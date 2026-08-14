@@ -1,6 +1,8 @@
 <?php
-require_once __DIR__ . "/BaseDAO.php";
-require_once __DIR__ . "/../models/Brand.php";
+
+namespace DAO;
+
+use Models\Brand;
 
 class BrandDAO extends BaseDAO
 {
@@ -9,163 +11,171 @@ class BrandDAO extends BaseDAO
         parent::__construct();
     }
 
-    // Lấy tất cả thương hiệu
+    // =========================================================
+    // LẤY TẤT CẢ THƯƠNG HIỆU
+    // =========================================================
     public function getAll(): array
     {
         $list = [];
 
-        try {
-            $sql = "SELECT * FROM brands ORDER BY brandname";
-            $result = $this->executeQuery($sql);
+        $sql = "SELECT *
+                FROM brands
+                ORDER BY brandname ASC";
 
-            while ($row = $result->fetch_assoc()) {
+        $result = $this->executeQuery($sql);
 
-                $brand = new Brand(
-                    $row["brandname"],
-                    $row["slug"],
-                    $row["image"],
-                    $row["description"],
-                    $row["status"]
-                );
+        while ($row = $result->fetch_assoc()) {
 
-                $brand->id = $row["id"];
-                $brand->createdAt = $row["created_at"];
-                $brand->updatedAt = $row["updated_at"];
+            $brand = new Brand(
+                $row["brandname"] ?? "",
+                $row["slug"] ?? "",
+                $row["image"] ?? null,
+                $row["description"] ?? null,
+                (int)($row["status"] ?? 1)
+            );
 
-                $list[] = $brand;
-            }
-        } catch (Exception $e) {
-            throw $e;
+            $brand->id = (int)$row["id"];
+            $brand->createdAt = $row["created_at"] ?? null;
+            $brand->updatedAt = $row["updated_at"] ?? null;
+
+            $list[] = $brand;
         }
 
         return $list;
     }
 
-    // Tìm theo ID
+    // =========================================================
+    // TÌM THƯƠNG HIỆU THEO ID
+    // =========================================================
     public function findById(int $id): ?Brand
     {
-        try {
+        $sql = "SELECT *
+                FROM brands
+                WHERE id = ?";
 
-            $sql = "SELECT * FROM brands WHERE id=?";
-            $stmt = $this->prepare($sql);
+        $stmt = $this->prepare($sql);
 
-            $stmt->bind_param("i", $id);
+        $stmt->bind_param("i", $id);
 
-            $stmt->execute();
+        $stmt->execute();
 
-            $result = $stmt->get_result();
+        $result = $stmt->get_result();
 
-            if ($row = $result->fetch_assoc()) {
+        if ($row = $result->fetch_assoc()) {
 
-                $brand = new Brand(
-                    $row["brandname"],
-                    $row["slug"],
-                    $row["image"],
-                    $row["description"],
-                    $row["status"]
-                );
+            $brand = new Brand(
+                $row["brandname"] ?? "",
+                $row["slug"] ?? "",
+                $row["image"] ?? null,
+                $row["description"] ?? null,
+                (int)($row["status"] ?? 1)
+            );
 
-                $brand->id = $row["id"];
-                $brand->createdAt = $row["created_at"];
-                $brand->updatedAt = $row["updated_at"];
+            $brand->id = (int)$row["id"];
+            $brand->createdAt = $row["created_at"] ?? null;
+            $brand->updatedAt = $row["updated_at"] ?? null;
 
-                return $brand;
-            }
-        } catch (Exception $e) {
-            throw $e;
+            return $brand;
         }
 
         return null;
     }
 
-    // Thêm thương hiệu
+    // =========================================================
+    // THÊM THƯƠNG HIỆU
+    // =========================================================
     public function insert(Brand $brand): bool
     {
-        try {
+        $sql = "INSERT INTO brands
+                (
+                    brandname,
+                    slug,
+                    image,
+                    description,
+                    status
+                )
+                VALUES (?, ?, ?, ?, ?)";
 
-            $sql = "INSERT INTO brands
-                    (brandname,slug,image,description,status)
-                    VALUES (?,?,?,?,?)";
+        $stmt = $this->prepare($sql);
 
-            $stmt = $this->prepare($sql);
+        $stmt->bind_param(
+            "ssssi",
+            $brand->brandname,
+            $brand->slug,
+            $brand->image,
+            $brand->description,
+            $brand->status
+        );
 
-            $stmt->bind_param(
-                "ssssi",
-                $brand->brandname,
-                $brand->slug,
-                $brand->image,
-                $brand->description,
-                $brand->status
-            );
-
-            return $stmt->execute();
-        } catch (Exception $e) {
-            throw $e;
-        }
+        return $stmt->execute();
     }
 
-    // Cập nhật thương hiệu
+    // =========================================================
+    // CẬP NHẬT THƯƠNG HIỆU
+    // =========================================================
     public function update(Brand $brand): bool
     {
-        try {
+        $sql = "UPDATE brands
+                SET
+                    brandname = ?,
+                    slug = ?,
+                    image = ?,
+                    description = ?,
+                    status = ?
+                WHERE id = ?";
 
-            $sql = "UPDATE brands
-                    SET
-                        brandname=?,
-                        slug=?,
-                        image=?,
-                        description=?,
-                        status=?
-                    WHERE id=?";
+        $stmt = $this->prepare($sql);
 
-            $stmt = $this->prepare($sql);
+        $stmt->bind_param(
+            "ssssii",
+            $brand->brandname,
+            $brand->slug,
+            $brand->image,
+            $brand->description,
+            $brand->status,
+            $brand->id
+        );
 
-            $stmt->bind_param(
-                "ssssii",
-                $brand->brandname,
-                $brand->slug,
-                $brand->image,
-                $brand->description,
-                $brand->status,
-                $brand->id
-            );
-
-            return $stmt->execute();
-        } catch (Exception $e) {
-            throw $e;
-        }
+        return $stmt->execute();
     }
 
-    // Xóa thương hiệu
+    // =========================================================
+    // XÓA THƯƠNG HIỆU
+    // =========================================================
     public function delete(int $id): bool
     {
-        try {
+        $sql = "DELETE FROM brands
+                WHERE id = ?";
 
-            $sql = "DELETE FROM brands WHERE id=?";
+        $stmt = $this->prepare($sql);
 
-            $stmt = $this->prepare($sql);
+        $stmt->bind_param("i", $id);
 
-            $stmt->bind_param("i", $id);
-
-            return $stmt->execute();
-        } catch (Exception $e) {
-            throw $e;
-        }
+        return $stmt->execute();
     }
+
+    // =========================================================
+    // TÌM KIẾM THƯƠNG HIỆU
+    // =========================================================
     public function search(string $keyword): array
     {
         $list = [];
 
         $sql = "SELECT *
-            FROM brands
-            WHERE brandname LIKE ?
-            ORDER BY id DESC";
+                FROM brands
+                WHERE brandname LIKE ?
+                   OR slug LIKE ?
+                ORDER BY id DESC";
 
         $stmt = $this->prepare($sql);
 
         $keyword = "%" . $keyword . "%";
 
-        $stmt->bind_param("s", $keyword);
+        $stmt->bind_param(
+            "ss",
+            $keyword,
+            $keyword
+        );
 
         $stmt->execute();
 
@@ -173,44 +183,72 @@ class BrandDAO extends BaseDAO
 
         while ($row = $result->fetch_assoc()) {
 
-            $brand = new Brand();
+            $brand = new Brand(
+                $row["brandname"] ?? "",
+                $row["slug"] ?? "",
+                $row["image"] ?? null,
+                $row["description"] ?? null,
+                (int)($row["status"] ?? 1)
+            );
 
-            $brand->id = $row["id"];
-            $brand->brandname = $row["brandname"];
-            $brand->slug = $row["slug"];
-
-            // Nếu bảng brands có cột image
-            $brand->image = $row["image"];
-
-            $brand->description = $row["description"];
-            $brand->status = $row["status"];
-
-            $brand->createdAt = $row["created_at"];
-            $brand->updatedAt = $row["updated_at"];
+            $brand->id = (int)$row["id"];
+            $brand->createdAt = $row["created_at"] ?? null;
+            $brand->updatedAt = $row["updated_at"] ?? null;
 
             $list[] = $brand;
         }
 
         return $list;
     }
-    public function existsBySlugExceptId(string $slug, int $id): bool
-{
-    $sql = "
-        SELECT id
-        FROM brands
-        WHERE slug = ?
-        AND id != ?
-        LIMIT 1
-    ";
 
-    $stmt = $this->prepare($sql);
+    // =========================================================
+    // KIỂM TRA SLUG ĐÃ TỒN TẠI - TRỪ ID HIỆN TẠI
+    // =========================================================
+    public function existsBySlugExceptId(
+        string $slug,
+        int $id
+    ): bool {
 
-    $stmt->bind_param("si", $slug, $id);
+        $sql = "SELECT id
+                FROM brands
+                WHERE slug = ?
+                  AND id != ?
+                LIMIT 1";
 
-    $stmt->execute();
+        $stmt = $this->prepare($sql);
 
-    $result = $stmt->get_result();
+        $stmt->bind_param(
+            "si",
+            $slug,
+            $id
+        );
 
-    return $result->num_rows > 0;
-}
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        return $result->num_rows > 0;
+    }
+
+    // =========================================================
+    // KIỂM TRA SLUG ĐÃ TỒN TẠI
+    // DÙNG CHO CREATE
+    // =========================================================
+    public function existsBySlug(string $slug): bool
+    {
+        $sql = "SELECT id
+                FROM brands
+                WHERE slug = ?
+                LIMIT 1";
+
+        $stmt = $this->prepare($sql);
+
+        $stmt->bind_param("s", $slug);
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        return $result->num_rows > 0;
+    }
 }

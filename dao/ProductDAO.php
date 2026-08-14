@@ -1,4 +1,5 @@
 <?php
+
 namespace DAO;
 
 use Models\Product;
@@ -491,5 +492,40 @@ class ProductDAO extends BaseDAO
         $row = $result->fetch_assoc();
 
         return (int)$row["total"];
+    }
+    public function existsBySlugExceptId(string $slug, int $id): bool
+    {
+        $sql = "SELECT id
+            FROM products
+            WHERE slug = ?
+              AND id != ?
+            LIMIT 1";
+
+        $stmt = $this->prepare($sql);
+
+        $stmt->bind_param("si", $slug, $id);
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        return $result->num_rows > 0;
+    }
+    public function existsBySlug(string $slug): bool
+    {
+        $sql = "SELECT id
+            FROM products
+            WHERE slug = ?
+            LIMIT 1";
+
+        $stmt = $this->prepare($sql);
+
+        $stmt->bind_param("s", $slug);
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        return $result->num_rows > 0;
     }
 }
