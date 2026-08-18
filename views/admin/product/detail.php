@@ -1,8 +1,6 @@
 <?php
 
-require_once "../../../dao/ProductDAO.php";
-require_once "../../../dao/CategoryDAO.php";
-require_once "../../../dao/BrandDAO.php";
+use DAO\ProductDAO;
 
 $pageTitle = "Chi tiết sản phẩm";
 

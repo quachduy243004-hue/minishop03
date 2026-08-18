@@ -528,4 +528,435 @@ class ProductDAO extends BaseDAO
 
         return $result->num_rows > 0;
     }
+    /**
+     * Lấy sản phẩm giảm giá
+     */
+    public function getDiscountProducts(): array
+    {
+        $list = [];
+
+        $sql = "
+        SELECT
+            p.*,
+            c.catename AS categoryName,
+            b.brandname AS brandName
+        FROM products p
+
+        LEFT JOIN categories c
+            ON p.category_id = c.id
+
+        LEFT JOIN brands b
+            ON p.brand_id = b.id
+
+        WHERE p.status = 1
+          AND p.discount_price > 0
+          AND p.discount_price < p.price
+
+        ORDER BY p.created_at DESC
+
+        LIMIT 8
+    ";
+
+        $result = $this->executeQuery($sql);
+
+        while ($row = $result->fetch_assoc()) {
+
+            $product = new \Models\Product(
+                $row["category_id"],
+                $row["brand_id"],
+                $row["proname"],
+                $row["slug"],
+                $row["price"],
+                $row["discount_price"],
+                $row["quantity"],
+                $row["image"],
+                $row["description"],
+                $row["status"]
+            );
+
+            $product->id = $row["id"];
+
+            $product->categoryName =
+                $row["categoryName"] ?? "";
+
+            $product->brandName =
+                $row["brandName"] ?? "";
+
+            $product->createdAt =
+                $row["created_at"] ?? "";
+
+            $product->updatedAt =
+                $row["updated_at"] ?? "";
+
+            $list[] = $product;
+        }
+
+        return $list;
+    }
+    /**
+     * Lấy sản phẩm mới
+     */
+    public function getNewProducts(int $limit = 4): array
+    {
+        $list = [];
+
+        $limit = max(1, (int)$limit);
+
+        $sql = "
+        SELECT
+            p.*,
+            c.catename AS categoryName,
+            b.brandname AS brandName
+        FROM products p
+
+        LEFT JOIN categories c
+            ON p.category_id = c.id
+
+        LEFT JOIN brands b
+            ON p.brand_id = b.id
+
+        WHERE p.status = 1
+
+        ORDER BY p.created_at DESC
+
+        LIMIT $limit
+    ";
+
+        $result = $this->executeQuery($sql);
+
+        while ($row = $result->fetch_assoc()) {
+
+            $product = new Product(
+                $row["category_id"],
+                $row["brand_id"],
+                $row["proname"],
+                $row["slug"],
+                $row["price"],
+                $row["discount_price"],
+                $row["quantity"],
+                $row["image"],
+                $row["description"],
+                $row["status"]
+            );
+
+            $product->id = $row["id"];
+
+            $product->categoryName =
+                $row["categoryName"] ?? "";
+
+            $product->brandName =
+                $row["brandName"] ?? "";
+
+            $product->createdAt =
+                $row["created_at"] ?? "";
+
+            $product->updatedAt =
+                $row["updated_at"] ?? "";
+
+            $list[] = $product;
+        }
+
+        return $list;
+    }
+    // =========================================================
+    // LẤY SẢN PHẨM THEO SLUG DANH MỤC
+    // =========================================================
+    public function getByCategory(string $slug): array
+    {
+        $list = [];
+
+        $sql = "
+        SELECT 
+            p.*
+        FROM products p
+        INNER JOIN categories c
+            ON p.category_id = c.id
+        WHERE c.slug = ?
+        ORDER BY p.created_at DESC
+    ";
+
+        $stmt = $this->prepare($sql);
+
+        $stmt->bind_param("s", $slug);
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+
+        while ($row = $result->fetch_assoc()) {
+
+            $product = new \Models\Product();
+
+            $product->id = (int)($row['id'] ?? 0);
+
+            $product->categoryId =
+                (int)($row['category_id'] ?? 0);
+
+            $product->brandId =
+                (int)($row['brand_id'] ?? 0);
+
+            $product->proname =
+                $row['proname'] ?? '';
+
+            $product->slug =
+                $row['slug'] ?? '';
+
+            $product->price =
+                (float)($row['price'] ?? 0);
+
+            $product->discountPrice =
+                (float)($row['pricesale'] ?? $row['discount_price'] ?? 0);
+
+            $product->quantity =
+                (int)($row['qty'] ?? $row['quantity'] ?? 0);
+
+            $product->image =
+                $row['thumbnail'] ?? $row['image'] ?? '';
+
+            $product->description =
+                $row['description'] ?? '';
+
+            $product->status =
+                (int)($row['status'] ?? 1);
+
+            $product->createdAt =
+                $row['created_at'] ?? null;
+
+            $product->updatedAt =
+                $row['updated_at'] ?? null;
+
+            $list[] = $product;
+        }
+
+
+        return $list;
+    }
+    public function getByBrand(string $slug): array
+    {
+        $list = [];
+
+        $sql = "
+        SELECT 
+            p.*,
+            c.catename AS categoryName,
+            b.brandname AS brandName
+        FROM products p
+        INNER JOIN brands b 
+            ON p.brand_id = b.id
+        LEFT JOIN categories c 
+            ON p.category_id = c.id
+        WHERE b.slug = ?
+          AND p.status = 1
+        ORDER BY p.created_at DESC
+    ";
+
+        $stmt = $this->prepare($sql);
+
+        $stmt->bind_param("s", $slug);
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        while ($row = $result->fetch_assoc()) {
+
+            $product = new \Models\Product();
+
+            $product->id = (int)($row["id"] ?? 0);
+            $product->categoryId = (int)($row["category_id"] ?? 0);
+            $product->brandId = (int)($row["brand_id"] ?? 0);
+
+            $product->proname = $row["proname"] ?? "";
+            $product->slug = $row["slug"] ?? "";
+
+            $product->price = (float)($row["price"] ?? 0);
+            $product->discountPrice = (float)($row["pricesale"] ?? 0);
+
+            $product->quantity = (int)($row["qty"] ?? 0);
+
+            $product->image = $row["thumbnail"] ?? "";
+
+            $product->description = $row["description"] ?? "";
+            $product->status = (int)($row["status"] ?? 1);
+
+            $product->categoryName = $row["categoryName"] ?? "";
+            $product->brandName = $row["brandName"] ?? "";
+
+            $product->createdAt = $row["created_at"] ?? null;
+            $product->updatedAt = $row["updated_at"] ?? null;
+
+            $list[] = $product;
+        }
+
+        return $list;
+    }
+    public function search(string $keyword): array
+    {
+        $list = [];
+
+        $sql = "
+        SELECT
+            p.*,
+            c.catename AS categoryName,
+            b.brandname AS brandName
+        FROM products p
+        LEFT JOIN categories c
+            ON p.category_id = c.id
+        LEFT JOIN brands b
+            ON p.brand_id = b.id
+        WHERE p.proname LIKE ?
+           OR p.slug LIKE ?
+        ORDER BY p.proname ASC
+    ";
+
+        $stmt = $this->prepare($sql);
+
+        $key = "%" . $keyword . "%";
+
+        $stmt->bind_param(
+            "ss",
+            $key,
+            $key
+        );
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        while ($row = $result->fetch_assoc()) {
+
+            $product = new \Models\Product();
+
+            $product->id =
+                (int)($row["id"] ?? 0);
+
+            $product->categoryId =
+                (int)($row["category_id"] ?? 0);
+
+            $product->brandId =
+                (int)($row["brand_id"] ?? 0);
+
+            $product->proname =
+                $row["proname"] ?? "";
+
+            $product->slug =
+                $row["slug"] ?? "";
+
+            $product->price =
+                (float)($row["price"] ?? 0);
+
+            $product->discountPrice =
+                (float)($row["pricesale"] ?? 0);
+
+            $product->quantity =
+                (int)($row["qty"] ?? 0);
+
+            $product->image =
+                $row["thumbnail"] ?? "";
+
+            $product->description =
+                $row["description"] ?? "";
+
+            $product->status =
+                (int)($row["status"] ?? 1);
+
+            $product->categoryName =
+                $row["categoryName"] ?? "";
+
+            $product->brandName =
+                $row["brandName"] ?? "";
+
+            $product->createdAt =
+                $row["created_at"] ?? null;
+
+            $product->updatedAt =
+                $row["updated_at"] ?? null;
+
+            $list[] = $product;
+        }
+
+        return $list;
+    }
+    public function getBySlug(string $slug): ?\Models\Product
+    {
+        $sql = "
+        SELECT 
+            p.*,
+            c.catename AS categoryName,
+            c.slug AS categorySlug,
+            b.brandname AS brandName,
+            b.slug AS brandSlug
+        FROM products p
+
+        LEFT JOIN categories c
+            ON p.category_id = c.id
+
+        LEFT JOIN brands b
+            ON p.brand_id = b.id
+
+        WHERE p.slug = ?
+        LIMIT 1
+    ";
+
+        $stmt = $this->prepare($sql);
+
+        $stmt->bind_param("s", $slug);
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        if (!$row = $result->fetch_assoc()) {
+            return null;
+        }
+
+        $product = new \Models\Product();
+
+        /*
+    |----------------------------------------------------------
+    | GÁN DỮ LIỆU DATABASE VÀO MODEL
+    |----------------------------------------------------------
+    */
+
+        $product->id = (int)($row["id"] ?? 0);
+
+        $product->categoryId =
+            (int)($row["category_id"] ?? 0);
+
+        $product->brandId =
+            (int)($row["brand_id"] ?? 0);
+
+        $product->proname =
+            $row["proname"] ?? "";
+
+        $product->slug =
+            $row["slug"] ?? "";
+
+        $product->price =
+            (float)($row["price"] ?? 0);
+
+        $product->discountPrice =
+            (float)($row["discountPrice"] ?? 0);
+
+        $product->quantity =
+            (int)($row["quantity"] ?? 0);
+
+        $product->image =
+            $row["image"] ?? "";
+
+        $product->description =
+            $row["description"] ?? "";
+
+        $product->status =
+            (int)($row["status"] ?? 1);
+
+        $product->categoryName =
+            $row["categoryName"] ?? "";
+
+        $product->brandName =
+            $row["brandName"] ?? "";
+
+        return $product;
+    }
 }

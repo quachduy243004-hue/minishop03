@@ -20,7 +20,7 @@ RewriteRule ^admin/dashboard/?$ index.php?area=admin&controller=dashboard&action
 
 
 # ==================================================
-# PRODUCT
+# ADMIN PRODUCT
 # ==================================================
 
 RewriteRule ^admin/product/?$ index.php?area=admin&controller=product&action=index [QSA,L]
@@ -35,7 +35,7 @@ RewriteRule ^admin/product/delete/([0-9]+)/?$ index.php?area=admin&controller=pr
 
 
 # ==================================================
-# CATEGORY
+# ADMIN CATEGORY
 # ==================================================
 
 RewriteRule ^admin/category/?$ index.php?area=admin&controller=category&action=index [QSA,L]
@@ -48,7 +48,7 @@ RewriteRule ^admin/category/delete/([0-9]+)/?$ index.php?area=admin&controller=c
 
 
 # ==================================================
-# BRAND
+# ADMIN BRAND
 # ==================================================
 
 RewriteRule ^admin/brand/?$ index.php?area=admin&controller=brand&action=index [QSA,L]
@@ -61,33 +61,14 @@ RewriteRule ^admin/brand/delete/([0-9]+)/?$ index.php?area=admin&controller=bran
 
 
 # ==================================================
-# CUSTOMER
-# ==================================================
-
-RewriteRule ^admin/customer/?$ index.php?area=admin&controller=customer&action=index [QSA,L]
-
-
-# ==================================================
-# USER
-# ==================================================
-
-RewriteRule ^admin/user/?$ index.php?area=admin&controller=user&action=index [QSA,L]
-
-
-# ==================================================
-# ORDER
-# ==================================================
-
-RewriteRule ^admin/order/?$ index.php?area=admin&controller=order&action=index [QSA,L]
-
-RewriteRule ^admin/order/detail/([0-9]+)/?$ index.php?area=admin&controller=order&action=detail&id=$1 [QSA,L]
-
-
-# ==================================================
-# CLIENT
+# CLIENT PRODUCT
 # ==================================================
 
 RewriteRule ^product/?$ index.php?area=client&controller=product&action=index [QSA,L]
+
+RewriteRule ^category/([^/]+)/?$ index.php?area=client&controller=product&action=category&slug=$1 [QSA,L]
+
+RewriteRule ^brand/([^/]+)/?$ index.php?area=client&controller=product&action=brand&slug=$1 [QSA,L]
 
 
 # ==================================================
@@ -100,7 +81,9 @@ RewriteRule ^ - [L]
 
 
 # ==================================================
-# DEFAULT
+# DEFAULT CLIENT HOME
 # ==================================================
+
+RewriteRule ^$ index.php?area=client&controller=home&action=index [QSA,L]
 
 RewriteRule ^ index.php [QSA,L]

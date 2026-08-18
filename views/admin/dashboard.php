@@ -4,6 +4,8 @@
 // LOAD CLASS USER TRƯỚC SESSION
 // ========================================
 
+use Middleware\AuthMiddleware;
+
 require_once __DIR__ . "/../../models/User.php";
 require_once __DIR__ . "/../../middleware/AuthMiddleware.php";
 

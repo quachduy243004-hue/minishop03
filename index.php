@@ -21,11 +21,11 @@ if (session_status() === PHP_SESSION_NONE) {
 */
 
 $area =
-    $_GET["area"] ?? "admin";
+    $_GET["area"] ?? "client";
 
 $controller =
     strtolower(
-        $_GET["controller"] ?? "product"
+        $_GET["controller"] ?? "home"
     );
 
 $action =

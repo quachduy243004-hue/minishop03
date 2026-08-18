@@ -1,6 +1,6 @@
 <?php
 
-require_once "../../../autoload.php";
+require_once __DIR__ . "/../../../autoload.php";
 
 use DAO\ProductDAO;
 use DAO\CategoryDAO;
@@ -21,7 +21,7 @@ $brandDAO = new BrandDAO;
 $id = intval($_GET["id"] ?? 0);
 
 if ($id <= 0) {
-    header("Location: index.php");
+    header("Location: /MiniShop_quachvanduy/admin/product");
     exit;
 }
 
@@ -41,7 +41,7 @@ $brands = $brandDAO->getAll();
 $product = $productDAO->getById($id);
 
 if (!$product) {
-    header("Location: index.php");
+    header("Location: /MiniShop_quachvanduy/admin/product");
     exit;
 }
 
@@ -300,7 +300,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             if ($productDAO->update($product)) {
 
-                header("Location: index.php");
+                header("Location: /MiniShop_quachvanduy/admin/product");
                 exit;
 
             } else {
@@ -529,7 +529,7 @@ ob_start();
 
                             <?php
                             $imagePath =
-                                "../../../uploads/products/"
+                                "/MiniShop_quachvanduy/uploads/products/"
                                 . $oldImage;
                             ?>
 
@@ -688,7 +688,7 @@ ob_start();
                 </button>
 
                 <a
-                    href="index.php"
+                    href="/MiniShop_quachvanduy/admin/product"
                     class="btn btn-secondary">
 
                     Quay lại
@@ -741,6 +741,6 @@ document
 
 $content = ob_get_clean();
 
-include "../layouts/master.php";
+include __DIR__ . "/../layouts/master.php";
 
 ?>

@@ -251,4 +251,85 @@ class BrandDAO extends BaseDAO
 
         return $result->num_rows > 0;
     }
+    public function getByLimit(int $limit = 5): array
+    {
+        $list = $this->getAll();
+
+        return array_slice($list, 0, $limit);
+    }
+    // =========================================================
+// LẤY SẢN PHẨM THEO SLUG THƯƠNG HIỆU
+// =========================================================
+public function getByBrand(string $slug): array
+{
+    $list = [];
+
+    $sql = "
+        SELECT 
+            p.*
+        FROM products p
+        INNER JOIN brands b
+            ON p.brand_id = b.id
+        WHERE b.slug = ?
+        ORDER BY p.created_at DESC
+    ";
+
+    $stmt = $this->prepare($sql);
+
+    $stmt->bind_param("s", $slug);
+
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+
+    while ($row = $result->fetch_assoc()) {
+
+        $product = new \Models\Product();
+
+        $product->id =
+            (int)($row['id'] ?? 0);
+
+        $product->categoryId =
+            (int)($row['category_id'] ?? 0);
+
+        $product->brandId =
+            (int)($row['brand_id'] ?? 0);
+
+        $product->proname =
+            $row['proname'] ?? '';
+
+        $product->slug =
+            $row['slug'] ?? '';
+
+        $product->price =
+            (float)($row['price'] ?? 0);
+
+        $product->discountPrice =
+            (float)($row['pricesale'] ?? $row['discount_price'] ?? 0);
+
+        $product->quantity =
+            (int)($row['qty'] ?? $row['quantity'] ?? 0);
+
+        $product->image =
+            $row['thumbnail'] ?? $row['image'] ?? '';
+
+        $product->description =
+            $row['description'] ?? '';
+
+        $product->status =
+            (int)($row['status'] ?? 1);
+
+        $product->createdAt =
+            $row['created_at'] ?? null;
+
+        $product->updatedAt =
+            $row['updated_at'] ?? null;
+
+        $list[] = $product;
+    }
+
+
+    return $list;
+}
 }

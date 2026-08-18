@@ -158,7 +158,6 @@ class ProductController
         $quantity = "";
 
         $description = "";
-
         $status = 1;
 
         $errors = [];
@@ -225,7 +224,6 @@ class ProductController
 
                 $errors[] =
                     "Vui lòng nhập tên sản phẩm.";
-
             } elseif (mb_strlen($proname) < 2) {
 
                 $errors[] =
@@ -236,7 +234,6 @@ class ProductController
 
                 $errors[] =
                     "Vui lòng nhập slug.";
-
             } elseif (!preg_match(
                 '/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
                 $slug
@@ -257,7 +254,6 @@ class ProductController
 
                 $errors[] =
                     "Giá sản phẩm không hợp lệ.";
-
             } elseif ((float)$price < 0) {
 
                 $errors[] =
@@ -277,7 +273,6 @@ class ProductController
 
                 $errors[] =
                     "Giá khuyến mãi không hợp lệ.";
-
             } elseif ((float)$discountPrice < 0) {
 
                 $errors[] =
@@ -305,7 +300,6 @@ class ProductController
 
                 $errors[] =
                     "Số lượng không hợp lệ.";
-
             } elseif (
                 (int)$quantity < 0
             ) {
@@ -352,7 +346,7 @@ class ProductController
             if (
                 isset($_FILES["image"])
                 && $_FILES["image"]["error"]
-                    !== UPLOAD_ERR_NO_FILE
+                !== UPLOAD_ERR_NO_FILE
             ) {
 
                 $file = $_FILES["image"];
@@ -364,7 +358,6 @@ class ProductController
 
                     $errors[] =
                         "Upload hình ảnh thất bại.";
-
                 } else {
 
                     // ==============================
@@ -493,7 +486,7 @@ class ProductController
                         $imageName !== ""
                         && isset($_FILES["image"])
                         && $_FILES["image"]["error"]
-                            === UPLOAD_ERR_OK
+                        === UPLOAD_ERR_OK
                     ) {
 
                         $uploadDir =
@@ -521,7 +514,6 @@ class ProductController
                         ) {
 
                             $imageUploaded = true;
-
                         } else {
 
                             $errors[] =
@@ -581,7 +573,6 @@ class ProductController
                         $errors[] =
                             "Thêm sản phẩm thất bại.";
                     }
-
                 } catch (\Throwable $e) {
 
                     // Nếu DB lỗi thì xóa ảnh vừa upload
@@ -792,7 +783,6 @@ class ProductController
 
                 $errors[] =
                     "Vui lòng nhập tên sản phẩm.";
-
             } elseif (
                 mb_strlen($proname) < 2
             ) {
@@ -805,7 +795,6 @@ class ProductController
 
                 $errors[] =
                     "Vui lòng nhập slug.";
-
             } elseif (!preg_match(
                 '/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
                 $slug
@@ -826,7 +815,6 @@ class ProductController
 
                 $errors[] =
                     "Giá sản phẩm không hợp lệ.";
-
             } elseif (
                 (float)$price < 0
             ) {
@@ -852,7 +840,6 @@ class ProductController
 
                 $errors[] =
                     "Giá khuyến mãi không hợp lệ.";
-
             } elseif (
                 (float)$discountPrice < 0
             ) {
@@ -865,7 +852,7 @@ class ProductController
                 is_numeric($price)
                 && is_numeric($discountPrice)
                 && (float)$discountPrice
-                    > (float)$price
+                > (float)$price
             ) {
 
                 $errors[] =
@@ -883,7 +870,6 @@ class ProductController
 
                 $errors[] =
                     "Số lượng không hợp lệ.";
-
             } elseif (
                 (int)$quantity < 0
             ) {
@@ -933,7 +919,7 @@ class ProductController
             if (
                 isset($_FILES["image"])
                 && $_FILES["image"]["error"]
-                    !== UPLOAD_ERR_NO_FILE
+                !== UPLOAD_ERR_NO_FILE
             ) {
 
                 $file = $_FILES["image"];
@@ -945,7 +931,6 @@ class ProductController
 
                     $errors[] =
                         "Upload hình ảnh thất bại.";
-
                 } else {
 
                     // ==========================
@@ -1058,7 +1043,7 @@ class ProductController
                     if (
                         isset($_FILES["image"])
                         && $_FILES["image"]["error"]
-                            === UPLOAD_ERR_OK
+                        === UPLOAD_ERR_OK
                     ) {
 
                         $uploadDir =
@@ -1087,7 +1072,6 @@ class ProductController
 
                             $errors[] =
                                 "Không thể lưu hình ảnh.";
-
                         } else {
 
                             $uploadedNewImage = true;
@@ -1132,7 +1116,7 @@ class ProductController
                                 && $oldImage !== ""
                                 && $oldImage !== null
                                 && $oldImage
-                                    !== $newImageName
+                                !== $newImageName
                             ) {
 
                                 $oldImagePath =
@@ -1192,7 +1176,6 @@ class ProductController
                         $errors[] =
                             "Cập nhật sản phẩm thất bại.";
                     }
-
                 } catch (\Throwable $e) {
 
                     // Xóa ảnh mới nếu database lỗi
@@ -1374,6 +1357,29 @@ class ProductController
                 );
 
             // ==============================
+            // XÓA CÁC DÒNG product_images TRONG DB TRƯỚC
+            // ==============================
+            // Trước đây code chỉ unlink() file ảnh gallery mà
+            // KHÔNG xóa dòng tương ứng trong bảng product_images.
+            // Nếu product_images.product_id có khóa ngoại tham
+            // chiếu products.id (không có ON DELETE CASCADE), thì
+            // DELETE FROM products bên dưới sẽ bị DB từ chối do
+            // vi phạm ràng buộc khóa ngoại -> ném exception -> bị
+            // catch (\Throwable $e) nuốt im lặng -> trang vẫn
+            // redirect về danh sách bình thường nhưng sản phẩm
+            // KHÔNG hề bị xóa. Xóa gallery trước để tránh lỗi này.
+
+            foreach ($images as $image) {
+
+                if (!empty($image["id"])) {
+
+                    $productDAO->deleteImage(
+                        (int)$image["id"]
+                    );
+                }
+            }
+
+            // ==============================
             // XÓA PRODUCT
             // ==============================
 
@@ -1436,10 +1442,10 @@ class ProductController
                     }
                 }
             }
-
         } catch (\Throwable $e) {
 
             // Có thể ghi log nếu cần
+
         }
 
         // ==============================
