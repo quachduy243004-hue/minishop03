@@ -20,18 +20,15 @@ if (session_status() === PHP_SESSION_NONE) {
 |--------------------------------------------------------------------------
 */
 
-$area =
-    $_GET["area"] ?? "client";
+$area = $_GET["area"] ?? "client";
 
-$controller =
-    strtolower(
-        $_GET["controller"] ?? "home"
-    );
+$controller = strtolower(
+    $_GET["controller"] ?? "home"
+);
 
-$action =
-    strtolower(
-        $_GET["action"] ?? "index"
-    );
+$action = strtolower(
+    $_GET["action"] ?? "index"
+);
 
 
 /*
@@ -44,7 +41,6 @@ if (
     $area === "admin"
     && $controller !== "auth"
 ) {
-
     \Middleware\AuthMiddleware::handle();
 }
 
@@ -60,7 +56,6 @@ if (
     && $controller === "auth"
     && $action === "login"
 ) {
-
     \Middleware\GuestMiddleware::handle();
 }
 
@@ -97,9 +92,7 @@ if (!class_exists($controllerClass)) {
 
     die(
         "Controller không tồn tại: "
-        . htmlspecialchars(
-            $controllerClass
-        )
+        . htmlspecialchars($controllerClass)
     );
 }
 
@@ -110,8 +103,7 @@ if (!class_exists($controllerClass)) {
 |--------------------------------------------------------------------------
 */
 
-$controllerObject =
-    new $controllerClass();
+$controllerObject = new $controllerClass();
 
 
 /*
@@ -120,12 +112,7 @@ $controllerObject =
 |--------------------------------------------------------------------------
 */
 
-if (
-    !method_exists(
-        $controllerObject,
-        $action
-    )
-) {
+if (!method_exists($controllerObject, $action)) {
 
     die(
         "Action không tồn tại: "

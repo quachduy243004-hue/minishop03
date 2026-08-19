@@ -2,9 +2,14 @@
 
     <?php if (!isset($product) || !$product): ?>
 
+        <!-- ==========================================
+             KHÔNG TÌM THẤY
+        =========================================== -->
+
         <div class="alert alert-danger text-center">
 
             <h4 class="mb-2">
+                <i class="bi bi-exclamation-circle me-2"></i>
                 Không tìm thấy sản phẩm
             </h4>
 
@@ -13,17 +18,84 @@
             </p>
 
             <a
-                href="<?= BASE_URL ?>/product"
+                href="<?= BASE_URL ?>product"
                 class="btn btn-primary"
             >
-                <i class="bi bi-arrow-left"></i>
+
+                <i class="bi bi-arrow-left me-1"></i>
+
                 Quay lại sản phẩm
+
             </a>
 
         </div>
 
+
     <?php else: ?>
 
+
+        <?php
+
+        $price = (float)($product->price ?? 0);
+
+        $discountPrice =
+            (float)($product->discountPrice ?? 0);
+
+        $quantity =
+            (int)($product->quantity ?? 0);
+
+        ?>
+
+
+        <!-- ==========================================
+             BREADCRUMB
+        =========================================== -->
+
+        <nav aria-label="breadcrumb" class="mb-4">
+
+            <ol class="breadcrumb">
+
+                <li class="breadcrumb-item">
+
+                    <a
+                        href="<?= BASE_URL ?>"
+                        class="text-decoration-none"
+                    >
+                        Trang chủ
+                    </a>
+
+                </li>
+
+                <li class="breadcrumb-item">
+
+                    <a
+                        href="<?= BASE_URL ?>product"
+                        class="text-decoration-none"
+                    >
+                        Sản phẩm
+                    </a>
+
+                </li>
+
+                <li
+                    class="breadcrumb-item active"
+                    aria-current="page"
+                >
+
+                    <?= htmlspecialchars(
+                        $product->proname ?? "Chi tiết"
+                    ) ?>
+
+                </li>
+
+            </ol>
+
+        </nav>
+
+
+        <!-- ==========================================
+             CHI TIẾT
+        =========================================== -->
 
         <div class="row g-5">
 
@@ -34,18 +106,17 @@
 
             <div class="col-md-6">
 
-                <div class="card shadow-sm">
+                <div class="card shadow-sm border-0">
 
-                    <div class="card-body text-center">
+                    <div class="card-body">
 
                         <?php if (!empty($product->image)): ?>
 
                             <img
                                 src="<?= PRODUCT_IMAGE_URL . htmlspecialchars($product->image) ?>"
-                                alt="<?= htmlspecialchars($product->proname) ?>"
-                                class="img-fluid"
+                                alt="<?= htmlspecialchars($product->proname ?? 'Sản phẩm') ?>"
+                                class="img-fluid w-100"
                                 style="
-                                    width:100%;
                                     height:450px;
                                     object-fit:contain;
                                 "
@@ -54,13 +125,22 @@
                         <?php else: ?>
 
                             <div
-                                class="d-flex align-items-center justify-content-center bg-light"
+                                class="d-flex align-items-center justify-content-center bg-light rounded"
                                 style="height:450px;"
                             >
 
-                                <span class="text-muted">
-                                    Không có hình ảnh
-                                </span>
+                                <div class="text-center text-muted">
+
+                                    <i
+                                        class="bi bi-image"
+                                        style="font-size:80px;"
+                                    ></i>
+
+                                    <p class="mt-3 mb-0">
+                                        Không có hình ảnh
+                                    </p>
+
+                                </div>
 
                             </div>
 
@@ -74,89 +154,136 @@
 
 
             <!-- ==========================================
-                 THÔNG TIN SẢN PHẨM
+                 THÔNG TIN
             =========================================== -->
 
             <div class="col-md-6">
 
+
                 <!-- TÊN -->
 
-                <h2 class="fw-bold mb-3">
+                <h1 class="fw-bold mb-3">
 
                     <?= htmlspecialchars(
-                        $product->proname
+                        $product->proname ?? "Sản phẩm"
                     ) ?>
 
-                </h2>
+                </h1>
 
 
-                <!-- GIÁ -->
+                <!-- ĐÁNH GIÁ GIẢ -->
+                <!-- Có thể bỏ phần này nếu chưa cần -->
 
-                <?php
+                <div class="mb-3">
 
-                $price =
-                    (float)$product->price;
+                    <span class="text-warning">
 
-                $discountPrice =
-                    (float)$product->discountPrice;
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star"></i>
 
-                ?>
+                    </span>
 
-                <?php if (
-                    $discountPrice > 0 &&
-                    $discountPrice < $price
-                ): ?>
+                    <span class="text-muted ms-2">
+                        Sản phẩm
+                    </span>
 
-                    <div class="mb-4">
+                </div>
+
+
+                <!-- ==========================================
+                     GIÁ
+                =========================================== -->
+
+                <div class="mb-4">
+
+                    <?php if (
+                        $discountPrice > 0 &&
+                        $discountPrice < $price
+                    ): ?>
 
                         <div>
 
                             <del class="text-muted fs-5">
 
-                                <?= number_format($price) ?> đ
+                                <?= number_format(
+                                    $price,
+                                    0,
+                                    ",",
+                                    "."
+                                ) ?>
+
+                                đ
 
                             </del>
 
                         </div>
 
+
                         <div class="text-danger fw-bold fs-2">
 
-                            <?= number_format($discountPrice) ?> đ
+                            <?= number_format(
+                                $discountPrice,
+                                0,
+                                ",",
+                                "."
+                            ) ?>
+
+                            đ
 
                         </div>
 
-                    </div>
 
-                <?php else: ?>
+                        <span class="badge bg-danger mt-2">
 
-                    <div class="text-danger fw-bold fs-2 mb-4">
+                            Giảm giá
 
-                        <?= number_format($price) ?> đ
+                        </span>
 
-                    </div>
+                    <?php else: ?>
 
-                <?php endif; ?>
+                        <div class="text-danger fw-bold fs-2">
+
+                            <?= number_format(
+                                $price,
+                                0,
+                                ",",
+                                "."
+                            ) ?>
+
+                            đ
+
+                        </div>
+
+                    <?php endif; ?>
+
+                </div>
 
 
                 <hr>
 
 
-                <!-- DANH MỤC -->
+                <!-- ==========================================
+                     DANH MỤC
+                =========================================== -->
 
                 <div class="mb-3">
 
                     <strong>
 
-                        <i class="bi bi-grid"></i>
+                        <i class="bi bi-grid me-2"></i>
 
                         Danh mục:
 
                     </strong>
 
-                    <span>
+                    <span class="ms-2">
 
                         <?= htmlspecialchars(
-                            $product->categoryName ?: "Chưa có"
+                            $product->categoryName
+                            ?? "Chưa có"
                         ) ?>
 
                     </span>
@@ -164,22 +291,25 @@
                 </div>
 
 
-                <!-- THƯƠNG HIỆU -->
+                <!-- ==========================================
+                     THƯƠNG HIỆU
+                =========================================== -->
 
                 <div class="mb-3">
 
                     <strong>
 
-                        <i class="bi bi-tags"></i>
+                        <i class="bi bi-tags me-2"></i>
 
                         Thương hiệu:
 
                     </strong>
 
-                    <span>
+                    <span class="ms-2">
 
                         <?= htmlspecialchars(
-                            $product->brandName ?: "Chưa có"
+                            $product->brandName
+                            ?? "Chưa có"
                         ) ?>
 
                     </span>
@@ -187,23 +317,61 @@
                 </div>
 
 
-                <!-- SỐ LƯỢNG -->
+                <!-- ==========================================
+                     SỐ LƯỢNG
+                =========================================== -->
 
                 <div class="mb-3">
 
                     <strong>
 
-                        <i class="bi bi-box-seam"></i>
+                        <i class="bi bi-box-seam me-2"></i>
 
                         Số lượng:
 
                     </strong>
 
-                    <span>
+                    <span class="ms-2">
 
-                        <?= (int)$product->quantity ?>
+                        <?= $quantity ?>
 
                     </span>
+
+                </div>
+
+
+                <!-- ==========================================
+                     TRẠNG THÁI
+                =========================================== -->
+
+                <div class="mb-4">
+
+                    <strong>
+
+                        <i class="bi bi-check-circle me-2"></i>
+
+                        Trạng thái:
+
+                    </strong>
+
+
+                    <?php if ($quantity > 0): ?>
+
+                        <span class="badge bg-success ms-2">
+
+                            Còn hàng
+
+                        </span>
+
+                    <?php else: ?>
+
+                        <span class="badge bg-danger ms-2">
+
+                            Hết hàng
+
+                        </span>
+
+                    <?php endif; ?>
 
                 </div>
 
@@ -211,11 +379,13 @@
                 <hr>
 
 
-                <!-- MÔ TẢ -->
+                <!-- ==========================================
+                     MÔ TẢ
+                =========================================== -->
 
                 <h5 class="fw-bold mb-3">
 
-                    <i class="bi bi-info-circle"></i>
+                    <i class="bi bi-info-circle me-2"></i>
 
                     Mô tả sản phẩm
 
@@ -224,7 +394,9 @@
 
                 <div class="text-muted mb-4">
 
-                    <?php if (!empty($product->description)): ?>
+                    <?php if (
+                        !empty($product->description)
+                    ): ?>
 
                         <?= nl2br(
                             htmlspecialchars(
@@ -234,45 +406,178 @@
 
                     <?php else: ?>
 
-                        Chưa có mô tả sản phẩm.
+                        <span>
+                            Chưa có mô tả sản phẩm.
+                        </span>
 
                     <?php endif; ?>
 
                 </div>
 
 
-                <!-- BUTTON -->
+                <!-- ==========================================
+                     MUA HÀNG
+                =========================================== -->
 
                 <div class="d-flex gap-2">
 
-                    <button
-                        type="button"
-                        class="btn btn-primary"
-                    >
 
-                        <i class="bi bi-cart-plus"></i>
+                    <?php if ($quantity > 0): ?>
 
-                        Thêm vào giỏ hàng
+                        <button
+                            type="button"
+                            class="btn btn-primary btn-lg"
+                        >
 
-                    </button>
+                            <i class="bi bi-cart-plus me-2"></i>
+
+                            Thêm vào giỏ hàng
+
+                        </button>
 
 
-                    <a
-                        href="<?= BASE_URL ?>/product"
-                        class="btn btn-outline-secondary"
-                    >
+                        <button
+                            type="button"
+                            class="btn btn-danger btn-lg"
+                        >
 
-                        <i class="bi bi-arrow-left"></i>
+                            Mua ngay
 
-                        Quay lại
+                        </button>
 
-                    </a>
+                    <?php else: ?>
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary btn-lg"
+                            disabled
+                        >
+
+                            <i class="bi bi-x-circle me-2"></i>
+
+                            Hết hàng
+
+                        </button>
+
+                    <?php endif; ?>
+
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- ==========================================
+             MÔ TẢ CHI TIẾT
+        =========================================== -->
+
+        <div class="card shadow-sm border-0 mt-5">
+
+            <div class="card-body p-4">
+
+                <h4 class="fw-bold mb-4">
+
+                    <i class="bi bi-file-text me-2"></i>
+
+                    Thông tin sản phẩm
+
+                </h4>
+
+
+                <div class="row">
+
+                    <div class="col-md-6">
+
+
+                        <p>
+
+                            <strong>
+                                Tên sản phẩm:
+                            </strong>
+
+                            <?= htmlspecialchars(
+                                $product->proname ?? ""
+                            ) ?>
+
+                        </p>
+
+
+                        <p>
+
+                            <strong>
+                                Danh mục:
+                            </strong>
+
+                            <?= htmlspecialchars(
+                                $product->categoryName
+                                ?? "Chưa có"
+                            ) ?>
+
+                        </p>
+
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+
+                        <p>
+
+                            <strong>
+                                Thương hiệu:
+                            </strong>
+
+                            <?= htmlspecialchars(
+                                $product->brandName
+                                ?? "Chưa có"
+                            ) ?>
+
+                        </p>
+
+
+                        <p>
+
+                            <strong>
+                                Số lượng:
+                            </strong>
+
+                            <?= $quantity ?>
+
+                        </p>
+
+
+                    </div>
 
                 </div>
 
             </div>
 
         </div>
+
+
+        <!-- ==========================================
+             QUAY LẠI
+        =========================================== -->
+
+        <div class="mt-4">
+
+            <a
+                href="<?= BASE_URL ?>product"
+                class="btn btn-outline-secondary"
+            >
+
+                <i class="bi bi-arrow-left me-2"></i>
+
+                Tiếp tục xem sản phẩm
+
+            </a>
+
+        </div>
+
 
     <?php endif; ?>
 

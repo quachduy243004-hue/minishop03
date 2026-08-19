@@ -6,15 +6,33 @@
 |--------------------------------------------------------------------------
 */
 
-define(
-    'BASE_URL',
-    '/MiniShop_quachvanduy/'
-);
+if (!defined('BASE_URL')) {
+    define(
+        'BASE_URL',
+        '/MiniShop_quachvanduy/'
+    );
+}
 
-define(
-    'PRODUCT_IMAGE_URL',
-    BASE_URL . '/uploads/products/'
-);
+if (!defined('PRODUCT_IMAGE_URL')) {
+    define(
+        'PRODUCT_IMAGE_URL',
+        BASE_URL . 'uploads/products/'
+    );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| CART
+|--------------------------------------------------------------------------
+*/
+
+if (!defined('CART_SESSION_KEY')) {
+    define(
+        'CART_SESSION_KEY',
+        'cart'
+    );
+}
 
 
 /*
@@ -32,7 +50,7 @@ spl_autoload_register(function ($className) {
         'Models\\'      => __DIR__ . '/models/',
         'Middleware\\'  => __DIR__ . '/middleware/',
         'Config\\'      => __DIR__ . '/config/',
-        'Composers\\' => __DIR__ . '/composers/',
+        'Composers\\'   => __DIR__ . '/composers/',
 
     ];
 

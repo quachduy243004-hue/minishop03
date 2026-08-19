@@ -27,11 +27,11 @@ RewriteRule ^admin/product/?$ index.php?area=admin&controller=product&action=ind
 
 RewriteRule ^admin/product/create/?$ index.php?area=admin&controller=product&action=create [QSA,L]
 
-RewriteRule ^admin/product/edit/([0-9]+)/?$ index.php?area=admin&controller=product&action=edit&id=$1 [QSA,L]
+RewriteRule ^admin/product/edit/?$ index.php?area=admin&controller=product&action=edit [QSA,L]
 
-RewriteRule ^admin/product/detail/([0-9]+)/?$ index.php?area=admin&controller=product&action=detail&id=$1 [QSA,L]
+RewriteRule ^admin/product/detail/?$ index.php?area=admin&controller=product&action=detail [QSA,L]
 
-RewriteRule ^admin/product/delete/([0-9]+)/?$ index.php?area=admin&controller=product&action=delete&id=$1 [QSA,L]
+RewriteRule ^admin/product/delete/?$ index.php?area=admin&controller=product&action=delete [QSA,L]
 
 
 # ==================================================
@@ -42,9 +42,9 @@ RewriteRule ^admin/category/?$ index.php?area=admin&controller=category&action=i
 
 RewriteRule ^admin/category/create/?$ index.php?area=admin&controller=category&action=create [QSA,L]
 
-RewriteRule ^admin/category/edit/([0-9]+)/?$ index.php?area=admin&controller=category&action=edit&id=$1 [QSA,L]
+RewriteRule ^admin/category/edit/?$ index.php?area=admin&controller=category&action=edit [QSA,L]
 
-RewriteRule ^admin/category/delete/([0-9]+)/?$ index.php?area=admin&controller=category&action=delete&id=$1 [QSA,L]
+RewriteRule ^admin/category/delete/?$ index.php?area=admin&controller=category&action=delete [QSA,L]
 
 
 # ==================================================
@@ -55,9 +55,9 @@ RewriteRule ^admin/brand/?$ index.php?area=admin&controller=brand&action=index [
 
 RewriteRule ^admin/brand/create/?$ index.php?area=admin&controller=brand&action=create [QSA,L]
 
-RewriteRule ^admin/brand/edit/([0-9]+)/?$ index.php?area=admin&controller=brand&action=edit&id=$1 [QSA,L]
+RewriteRule ^admin/brand/edit/?$ index.php?area=admin&controller=brand&action=edit [QSA,L]
 
-RewriteRule ^admin/brand/delete/([0-9]+)/?$ index.php?area=admin&controller=brand&action=delete&id=$1 [QSA,L]
+RewriteRule ^admin/brand/delete/?$ index.php?area=admin&controller=brand&action=delete [QSA,L]
 
 
 # ==================================================
@@ -66,9 +66,28 @@ RewriteRule ^admin/brand/delete/([0-9]+)/?$ index.php?area=admin&controller=bran
 
 RewriteRule ^product/?$ index.php?area=client&controller=product&action=index [QSA,L]
 
+RewriteRule ^product/([^/]+)/?$ index.php?area=client&controller=product&action=detail&slug=$1 [QSA,L]
+
 RewriteRule ^category/([^/]+)/?$ index.php?area=client&controller=product&action=category&slug=$1 [QSA,L]
 
 RewriteRule ^brand/([^/]+)/?$ index.php?area=client&controller=product&action=brand&slug=$1 [QSA,L]
+
+
+# ==================================================
+# CART
+# ==================================================
+
+RewriteRule ^cart/?$ index.php?area=client&controller=cart&action=index [QSA,L]
+
+RewriteRule ^cart/add/?$ index.php?area=client&controller=cart&action=add [QSA,L]
+
+RewriteRule ^cart/update/?$ index.php?area=client&controller=cart&action=update [QSA,L]
+
+RewriteRule ^cart/remove/?$ index.php?area=client&controller=cart&action=remove [QSA,L]
+
+RewriteRule ^cart/count/?$ index.php?area=client&controller=cart&action=count [QSA,L]
+
+RewriteRule ^cart/checkout/?$ index.php?area=client&controller=cart&action=checkout [QSA,L]
 
 
 # ==================================================
@@ -76,14 +95,21 @@ RewriteRule ^brand/([^/]+)/?$ index.php?area=client&controller=product&action=br
 # ==================================================
 
 RewriteCond %{REQUEST_FILENAME} -f [OR]
+
 RewriteCond %{REQUEST_FILENAME} -d
+
 RewriteRule ^ - [L]
 
 
 # ==================================================
-# DEFAULT CLIENT HOME
+# HOME
 # ==================================================
 
 RewriteRule ^$ index.php?area=client&controller=home&action=index [QSA,L]
+
+
+# ==================================================
+# DEFAULT
+# ==================================================
 
 RewriteRule ^ index.php [QSA,L]

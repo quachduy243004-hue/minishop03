@@ -349,6 +349,5 @@ if (!$product) {
 
 $content = ob_get_clean();
 
-require_once "../layouts/master.php";
-
+require_once __DIR__ . "/../layouts/master.php";
 ?>

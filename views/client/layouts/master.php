@@ -1,7 +1,10 @@
 <?php
+
 $title = $title ?? "Mini Shop";
 $content = $content ?? "";
+
 ?>
+
 <!DOCTYPE html>
 <html lang="vi">
 
@@ -14,7 +17,9 @@ $content = $content ?? "";
         content="width=device-width, initial-scale=1"
     >
 
-    <title><?= htmlspecialchars($title) ?></title>
+    <title>
+        <?= htmlspecialchars($title) ?>
+    </title>
 
 
     <!-- =========================================================
@@ -42,7 +47,7 @@ $content = $content ?? "";
     ========================================================== -->
 
     <link
-        href="/Minishop_hoten/assets/client/style.css"
+        href="/MiniShop_quachvanduy/assets/client/style.css"
         rel="stylesheet"
     >
 
@@ -95,7 +100,16 @@ $content = $content ?? "";
     ========================================================== -->
 
     <script
-        src="/Minishop_hoten/assets/client/script.js">
+        src="/MiniShop_quachvanduy/assets/client/script.js">
+    </script>
+
+
+    <!-- =========================================================
+         CART JS
+    ========================================================== -->
+
+    <script
+        src="/MiniShop_quachvanduy/public/js/cart.js">
     </script>
 
 </body>
